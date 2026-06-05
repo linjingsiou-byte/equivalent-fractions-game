@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分數魔法烘焙屋 4.0 - 國小四年級等值分數互動教材</title>
+  <!-- Google Fonts for playful typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Quicksand:wght@300..700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Dynamic background sparkles -->
+  <div class="bg-sparkles"></div>
+
+  <!-- Global Control Header -->
+  <header class="global-header">
+    <div class="header-logo" id="btn-home-logo">
+      <span class="emoji-logo">🧁</span>
+      <h1 class="title-text">分數魔法烘焙屋 4.0</h1>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-autoread" class="control-btn" title="開啟或關閉自動語音報讀題目">
+        <span class="btn-icon">🗣️</span>
+        <span class="btn-text">自動報讀: 關</span>
+      </button>
+      <button id="btn-toggle-audio" class="control-btn active" title="切換音效">
+        <span class="btn-icon">🎵</span>
+        <span class="btn-text">音效</span>
+      </button>
+      <button id="btn-nav-home" class="control-btn hide" title="回到選單">
+        <span class="btn-icon">🏠</span>
+        <span class="btn-text">選單</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Screen 1: Welcome Screen -->
+    <section id="screen-welcome" class="game-screen active">
+      <div class="welcome-content">
+        <div class="hero-character-container">
+          <div class="floating-character cat">🐱</div>
+          <div class="floating-character rabbit">🐰</div>
+        </div>
+        <h2 class="welcome-title">歡迎光臨！分數魔法烘焙屋 4.0</h2>
+        <p class="welcome-subtitle">一起來探索「一樣多」的分數，完成等值分數的試煉吧！</p>
+
+        <div class="mode-selection">
+          <!-- Single Player Card -->
+          <div class="mode-card" id="card-mode-single">
+            <div class="mode-card-icon bg-pink">🍳</div>
+            <h3>單人自主學習</h3>
+            <p>循序漸進認識等值分數、擴分與約分，收集星星！</p>
+            <button class="play-btn pink-btn">開始探索</button>
+          </div>
+
+          <!-- Two Player Card -->
+          <div class="mode-card" id="card-mode-pvp">
+            <div class="mode-card-icon bg-blue">⚔️</div>
+            <h3>雙人烘焙對決</h3>
+            <p>同屏極速搶答，看誰能用等值分數做出最多點心！</p>
+            <div class="pvp-rounds-selector">
+              <span class="selector-label">挑戰題數：</span>
+              <div class="selector-buttons">
+                <button type="button" class="round-select-btn" data-rounds="10">🧁 10題</button>
+                <button type="button" class="round-select-btn" data-rounds="20">🍩 20題</button>
+                <button type="button" class="round-select-btn active" data-rounds="30">🍪 30題</button>
+              </div>
+            </div>
+            <button class="play-btn blue-btn">雙人對戰</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 2: Game Selection Menu -->
+    <section id="screen-menu" class="game-screen">
+      <div class="menu-header">
+        <h2 id="menu-title-text">遊戲選單</h2>
+        <span class="badge" id="player-mode-badge">單人模式</span>
+      </div>
+      
+      <div class="menu-grid">
+        <!-- Explorer Button -->
+        <div class="menu-item mode-single-only" id="menu-btn-explorer">
+          <div class="menu-item-icon">🔮</div>
+          <div class="menu-item-info">
+            <h4>等值分數顯示器 (學習探索區)</h4>
+            <p>動手切蛋糕與打包糖果，觀察等值分數的變化！</p>
+          </div>
+        </div>
+
+        <!-- Level 1 Button -->
+        <div class="menu-item mode-single-only" id="menu-btn-game1">
+          <div class="menu-item-icon">🌟</div>
+          <div class="menu-item-info">
+            <h4>關卡一：等值披薩大配對</h4>
+            <p>拉一拉、疊一疊，找出和顧客盤子一樣大的等值披薩！</p>
+          </div>
+        </div>
+
+        <!-- Level 2 Button -->
+        <div class="menu-item mode-single-only" id="menu-btn-game2">
+          <div class="menu-item-icon">🍬</div>
+          <div class="menu-item-info">
+            <h4>關卡二：魔法糖果包裝員</h4>
+            <p>挑戰把一整盒糖果分組包裝，做出指定的等值分數！</p>
+          </div>
+        </div>
+
+        <!-- Level 3 Button -->
+        <div class="menu-item mode-single-only" id="menu-btn-game3">
+          <div class="menu-item-icon">⚖️</div>
+          <div class="menu-item-info">
+            <h4>關卡三：擴約分鍊金術</h4>
+            <p>調配神奇的乘除法藥水，讓分子分母同時變化！</p>
+          </div>
+        </div>
+
+        <!-- Level 4 Button -->
+        <div class="menu-item mode-single-only" id="menu-btn-game4">
+          <div class="menu-item-icon">🏃</div>
+          <div class="menu-item-info">
+            <h4>關卡四：數線跳跳尋寶記</h4>
+            <p>控制小動物在分數與小數數線上跳躍，尋找神祕寶箱！</p>
+          </div>
+        </div>
+
+        <!-- PvP Button -->
+        <div class="menu-item mode-pvp-only" id="menu-btn-pvp" style="display: none;">
+          <div class="menu-item-icon">⚔️</div>
+          <div class="menu-item-info">
+            <h4>雙人烘焙對決 (等值分數搶答)</h4>
+            <p>同屏極速搶答，爭奪分數魔法烘焙大師的榮譽！</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="menu-footer">
+        <button id="btn-back-to-welcome" class="standard-btn secondary-btn">🔙 返回模式選擇</button>
+      </div>
+    </section>
+
+    <!-- Screen 3: Concept Explorer -->
+    <section id="screen-explorer" class="game-screen">
+      <div class="screen-header">
+        <h3>🔮 等值分數顯示器</h3>
+        <button id="btn-explorer-speak" class="speak-btn">🔊 朗讀</button>
+      </div>
+
+      <div class="explorer-layout">
+        <!-- Left Side: Interactive controls -->
+        <div class="control-panel panel-card">
+          <!-- Continuous vs Discrete Tabs -->
+          <div class="explore-mode-tabs">
+            <button id="btn-tab-continuous" class="tab-btn active">🍰 連續量 (切蛋糕)</button>
+            <button id="btn-tab-discrete" class="tab-btn">🍬 離散量 (分糖果)</button>
+          </div>
+
+          <!-- Continuous Controls -->
+          <div id="explorer-continuous-controls" class="selector-group">
+            <span class="label-title">1. 選擇點心形狀：</span>
+            <div class="shape-buttons">
+              <button id="btn-shape-circle" class="shape-btn active">
+                <span class="shape-icon">🎂</span>
+                <span>圓形蛋糕</span>
+              </button>
+              <button id="btn-shape-rect" class="shape-btn">
+                <span class="shape-icon">🍫</span>
+                <span>長條巧克力</span>
+              </button>
+            </div>
+            
+            <span class="label-title">2. 調整平分份數：</span>
+            <div class="slider-wrapper">
+              <input type="range" id="explorer-den-slider" class="range-slider" min="2" max="16" value="4" step="1">
+              <div class="range-value-bubble" id="explorer-den-val">4 份</div>
+            </div>
+
+            <span class="label-title">3. 選擇著色份數（分子）：</span>
+            <div class="slider-wrapper">
+              <input type="range" id="explorer-num-slider" class="range-slider" min="1" max="4" value="1" step="1">
+              <div class="range-value-bubble" id="explorer-num-val">1 份</div>
+            </div>
+          </div>
+
+          <!-- Discrete Controls -->
+          <div id="explorer-discrete-controls" class="selector-group style-hide" style="display:none;">
+            <span class="label-title">1. 選擇一盒糖果總顆數：</span>
+            <div class="discrete-candy-options">
+              <button id="btn-candy-12" class="candy-opt-btn active">12 顆裝</button>
+              <button id="btn-candy-24" class="candy-opt-btn">24 顆裝</button>
+            </div>
+
+            <span class="label-title">2. 調整平分組數（分母）：</span>
+            <div class="slider-wrapper">
+              <input type="range" id="explorer-discrete-den" class="range-slider" min="2" max="12" value="3" step="1">
+              <div class="range-value-bubble" id="explorer-discrete-den-val">3 組</div>
+            </div>
+
+            <span class="label-title">3. 選擇拿走組數（分子）：</span>
+            <div class="slider-wrapper">
+              <input type="range" id="explorer-discrete-num" class="range-slider" min="1" max="3" value="1" step="1">
+              <div class="range-value-bubble" id="explorer-discrete-num-val">1 組</div>
+            </div>
+          </div>
+
+          <!-- Equivalent tools -->
+          <span class="label-title">4. 探索等值分數（擴分與約分）：</span>
+          <div class="explorer-action-group">
+            <button id="btn-explorer-multiply" class="action-bubble-btn" title="分子分母同時乘以 2">🧪 擴分 (×2)</button>
+            <button id="btn-explorer-divide" class="action-bubble-btn" title="分子分母同時除以 2">🧪 約分 (÷2)</button>
+          </div>
+
+          <!-- Explanation box -->
+          <div class="explanation-box" id="explorer-explanation">
+            <!-- Dynamic text -->
+          </div>
+        </div>
+
+        <!-- Right Side: SVG Visualization -->
+        <div class="visual-panel panel-card">
+          <div class="svg-container" id="explorer-svg-container">
+            <!-- Dynamic SVG will be rendered here -->
+          </div>
+          
+          <div class="fraction-display-row">
+            <div class="fraction-display-card">
+              <div class="math-fraction" id="explorer-main-frac" style="font-size: 2.2rem; margin: 0 10px !important;">
+                <span class="num" id="exp-num">1</span>
+                <span class="bar-row"><span class="bar-cell"></span></span>
+                <span class="den" id="exp-den">4</span>
+              </div>
+              <div class="fraction-name" id="exp-name">四分之一</div>
+            </div>
+
+            <!-- Equivalence Display -->
+            <div class="formula-connector" id="exp-eq-connector" style="display:none;">=</div>
+
+            <div class="fraction-display-card" id="exp-eq-card" style="display:none;">
+              <div class="math-fraction" id="explorer-eq-frac" style="font-size: 2.2rem; margin: 0 10px !important;">
+                <span class="num" id="exp-eq-num">2</span>
+                <span class="bar-row"><span class="bar-cell"></span></span>
+                <span class="den" id="exp-eq-den">8</span>
+              </div>
+              <div class="fraction-name" id="exp-eq-name">八分之二</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-footer">
+        <button class="standard-btn menu-back-btn">🔙 返回選單</button>
+      </div>
+    </section>
+
+    <!-- Screen 4: Game 1 - Equal Pizza Match (Continuous) -->
+    <section id="screen-game-1" class="game-screen">
+      <div class="single-game-layout">
+        <div class="game-card-main">
+          <!-- Game over feedbacks -->
+          <div id="g1-feedback" class="feedback-overlay">
+            <div class="feedback-content">
+              <span id="g1-feedback-emoji" class="feedback-emoji">🎉</span>
+              <span id="g1-feedback-msg" class="feedback-msg">答對了！</span>
+            </div>
+          </div>
+
+          <div class="game-status-bar">
+            <div class="game-title-info">🌟 關卡一：等值披薩大配對</div>
+            <div class="game-score-stars" id="g1-stars">⭐⭐⭐⭐⭐</div>
+          </div>
+
+          <div class="question-text-box" id="g1-question-text">
+            把下方與盤子中「一樣大」的等值披薩，拖曳放入魔法爐中！
+          </div>
+
+          <div class="g1-layout">
+            <!-- Target Magic Oven -->
+            <div class="g1-target-zone" id="g1-magic-oven">
+              <div class="g1-target-svg-wrap" id="g1-target-svg">
+                <!-- SVG target pizza -->
+              </div>
+              <div class="g1-target-label">放入等值披薩</div>
+            </div>
+
+            <!-- Options Tray -->
+            <div class="g1-tray" id="g1-tray">
+              <!-- Draggable cards -->
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-footer">
+          <button class="standard-btn menu-back-btn">🔙 返回選單</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 5: Game 2 - Candy Packager (Discrete) -->
+    <section id="screen-game-2" class="game-screen">
+      <div class="single-game-layout">
+        <div class="game-card-main">
+          <div id="g2-feedback" class="feedback-overlay">
+            <div class="feedback-content">
+              <span id="g2-feedback-emoji" class="feedback-emoji">🎉</span>
+              <span id="g2-feedback-msg" class="feedback-msg">答對了！</span>
+            </div>
+          </div>
+
+          <div class="game-status-bar">
+            <div class="game-title-info">🍬 關卡二：魔法糖果包裝員</div>
+            <div class="game-score-stars" id="g2-stars">⭐⭐⭐⭐⭐</div>
+          </div>
+
+          <div class="question-text-box" id="g2-question-text">
+            顧客想要買分量為 1/2 盒的馬卡龍。請幫忙進行打包！
+          </div>
+
+          <div class="g2-layout">
+            <!-- Grouping selection buttons -->
+            <div class="g2-control-panel">
+              <span class="label-title">第一步：要把這盒糖果平分成幾組？</span>
+              <div class="g2-divider-select" id="g2-dividers">
+                <!-- Buttons dynamically loaded -->
+              </div>
+            </div>
+
+            <!-- Candy Box Visualization -->
+            <div class="g2-box-container" id="g2-box-container">
+              <!-- SVG with interactive candy items -->
+              <svg class="g2-candy-grid-svg" id="g2-candy-svg"></svg>
+            </div>
+            
+            <div class="label-title" id="g2-operation-tips">
+              第二步：點選被虛線框起來的「組」，直到拿走指定分量！
+            </div>
+
+            <div class="explorer-action-group" style="width: 100%; max-width: 300px;">
+              <button id="btn-g2-submit" class="play-btn pink-btn" style="margin-top: 0;">📦 包裝完成，出貨！</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-footer">
+          <button class="standard-btn menu-back-btn">🔙 返回選單</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 6: Game 3 - Alchemy Multiplier (Multiplication/Division) -->
+    <section id="screen-game-3" class="game-screen">
+      <div class="single-game-layout">
+        <div class="game-card-main">
+          <div id="g3-feedback" class="feedback-overlay">
+            <div class="feedback-content">
+              <span id="g3-feedback-emoji" class="feedback-emoji">🎉</span>
+              <span id="g3-feedback-msg" class="feedback-msg">天平平衡，鍊金成功！</span>
+            </div>
+          </div>
+
+          <div class="game-status-bar">
+            <div class="game-title-info">⚖️ 關卡三：擴約分鍊金術</div>
+            <div class="game-score-stars" id="g3-stars">⭐⭐⭐⭐⭐</div>
+          </div>
+
+          <div class="question-text-box" id="g3-question-text">
+            調配神奇的乘除法藥水，放入分子和分母的槽中，讓算式成立！
+          </div>
+
+          <div class="g3-layout">
+            <!-- Scale and Formulas -->
+            <div class="g3-formula-board">
+              <!-- Left side: base fraction -->
+              <div class="g3-fraction-block" id="g3-frac-left">
+                <span class="num">1</span>
+                <span class="bar-row"><span class="bar-cell"></span></span>
+                <span class="den">2</span>
+              </div>
+
+              <div class="formula-connector">=</div>
+
+              <!-- Middle: alchemy slots -->
+              <div class="g3-alchemy-fraction-block">
+                <div class="g3-formula-row">
+                  <span class="num" id="g3-calc-left-num">1</span>
+                  <span class="g3-operator-label" id="g3-op-label-top">×</span>
+                  <div class="g3-drop-slot" id="g3-slot-num" data-slot="num">?</div>
+                </div>
+                <div class="bar"></div>
+                <div class="g3-formula-row">
+                  <span class="den" id="g3-calc-left-den">2</span>
+                  <span class="g3-operator-label" id="g3-op-label-bottom">×</span>
+                  <div class="g3-drop-slot" id="g3-slot-den" data-slot="den">?</div>
+                </div>
+              </div>
+
+              <div class="formula-connector">=</div>
+
+              <!-- Right side: target fraction -->
+              <div class="g3-fraction-block" id="g3-frac-right">
+                <span class="num">2</span>
+                <span class="bar-row"><span class="bar-cell"></span></span>
+                <span class="den">4</span>
+              </div>
+            </div>
+
+            <!-- Visualization of Left/Right Balance -->
+            <div class="svg-container" id="g3-svg-container" style="height: 180px; max-width: 180px;">
+              <!-- Mini visual for scale balance -->
+            </div>
+
+            <!-- Potions Tray -->
+            <div class="g3-potion-tray" id="g3-potion-tray">
+              <!-- Draggable potions -->
+            </div>
+
+            <div class="explorer-action-group" style="width: 100%; max-width: 300px;">
+              <button id="btn-g3-submit" class="play-btn pink-btn" style="margin-top: 0;">🔥 啟動鍊金魔法！</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-footer">
+          <button class="standard-btn menu-back-btn">🔙 返回選單</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 7: Game 4 - Number Line Explorer (Number Line & Decimals) -->
+    <section id="screen-game-4" class="game-screen">
+      <div class="single-game-layout">
+        <div class="game-card-main">
+          <div id="g4-feedback" class="feedback-overlay">
+            <div class="feedback-content">
+              <span id="g4-feedback-emoji" class="feedback-emoji">🎉</span>
+              <span id="g4-feedback-msg" class="feedback-msg">打開寶箱！</span>
+            </div>
+          </div>
+
+          <div class="game-status-bar">
+            <div class="game-title-info">🏃 關卡四：數線跳跳尋寶記</div>
+            <div class="game-score-stars" id="g4-stars">⭐⭐⭐⭐⭐</div>
+          </div>
+
+          <div class="question-text-box" id="g4-question-text">
+            控制小兔子在數線上跳躍，讓牠停在與 0.6 等值的位置，尋找寶藏！
+          </div>
+
+          <div class="g4-layout">
+            <!-- Number line SVG canvas -->
+            <div class="g4-canvas-container" id="g4-canvas-container">
+              <svg class="g4-number-line-svg" id="g4-line-svg"></svg>
+            </div>
+
+            <!-- Hop size options card group -->
+            <div class="label-title">選擇你要跳躍的步長卡片：</div>
+            <div class="g4-card-group" id="g4-cards">
+              <!-- step cards -->
+            </div>
+
+            <div class="g4-action-controls">
+              <button id="btn-g4-jump-right" class="standard-btn primary-btn">👉 向右跳一步</button>
+              <button id="btn-g4-jump-left" class="standard-btn secondary-btn">👈 向左跳一步</button>
+              <button id="btn-g4-reset" class="standard-btn secondary-btn">🔄 重點起跳</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-footer">
+          <button class="standard-btn menu-back-btn">🔙 返回選單</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 8: PvP Arena Screen -->
+    <section id="screen-pvp" class="game-screen">
+      <div class="pvp-header-banner">
+        ⚔️ 烘焙對戰：請搶答與 
+        <div class="pvp-target-box">
+          <div class="pvp-target-fraction" id="pvp-target-frac">
+            <span class="num">1</span>
+            <span class="bar-row"><span class="bar-cell"></span></span>
+            <span class="den">2</span>
+          </div>
+        </div>
+        等值的分數！
+      </div>
+
+      <div class="pvp-split-layout">
+        <!-- Player 1 (Blue) -->
+        <div class="pvp-player-panel p1" id="pvp-panel-p1">
+          <div id="pvp-p1-feedback" class="pvp-feedback-overlay"></div>
+          
+          <div class="player-panel-header">
+            <div class="player-info p1-name">🐱 貓咪小廚神 (P1)</div>
+            <div class="player-score" id="pvp-score-p1">得分: 0</div>
+          </div>
+
+          <div class="pvp-game-arena">
+            <div class="pvp-options-grid" id="pvp-options-p1">
+              <!-- 4 buttons -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Player 2 (Pink) -->
+        <div class="pvp-player-panel p2" id="pvp-panel-p2">
+          <div id="pvp-p2-feedback" class="pvp-feedback-overlay"></div>
+
+          <div class="player-panel-header">
+            <div class="player-info p2-name">🐰 兔子小廚神 (P2)</div>
+            <div class="player-score" id="pvp-score-p2">得分: 0</div>
+          </div>
+
+          <div class="pvp-game-arena">
+            <div class="pvp-options-grid" id="pvp-options-p2">
+              <!-- 4 buttons -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-footer" style="justify-content: center; margin-top: 20px;">
+        <button id="btn-pvp-quit" class="standard-btn secondary-btn">🏳️ 結束對決並返回</button>
+      </div>
+    </section>
+
+    <!-- Screen 9: Result Screen -->
+    <section id="screen-result" class="game-screen screen-result">
+      <div class="result-medal" id="result-medal">🏆</div>
+      <h2 class="result-title" id="result-title">恭喜通關！</h2>
+      <div class="result-score-stars" id="result-stars">⭐⭐⭐⭐⭐</div>
+      <p class="result-text" id="result-text">
+        你已經完成了所有的試煉，成功掌握了等值分數！你真是太棒了！
+      </p>
+      
+      <div class="menu-footer" style="gap: 16px;">
+        <button id="btn-result-restart" class="standard-btn primary-btn">🎮 再玩一次</button>
+        <button id="btn-result-back" class="standard-btn secondary-btn">🏠 回到選單</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="global-footer">
+    <div class="footer-slogan">🧁 快樂烘焙，等值分數真簡單！</div>
+    <div class="footer-info">
+      <span>本網站內容係參考康軒版國小四年級數學「等值分數」單元。</span>
+      <span class="footer-separator">|</span>
+      <span>設計者：國立屏科實驗高級中等學校(國小部) 林敬修老師</span>
+    </div>
+  </footer>
+
+  <!-- Confetti container for celebration -->
+  <div id="celebration-confetti-container" class="confetti-container"></div>
+
+  <!-- Include JavaScript logic -->
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1608 @@
+/* ==========================================================================
+   分數魔法烘焙屋 2.0 (等值分數的試煉) - 設計系統與樣式表
+   ========================================================================== */
+
+/* 1. 全域 CSS 變數定義 */
+:root {
+  /* 烘焙屋主題柔和色彩 */
+  --bg-primary: #FFFDF9;
+  --bg-secondary: #FFF8E7;
+  --color-text: #5D4037;       /* 深可可色，溫和親切 */
+  --color-text-muted: #8D6E63;
+  
+  --color-accent-pink: #FF8A80;
+  --color-accent-pink-hover: #FF5252;
+  --color-accent-blue: #7DD4E8;
+  --color-accent-blue-hover: #4BC6E0;
+  
+  --color-mint: #A5D6A7;
+  --color-cream: #FFE082;
+  --color-gold: #FFD700;
+  --color-purple: #D1C4E9;
+  
+  --color-brown-border: #FFE0B2;
+  --color-danger: #FF7043;
+  
+  /* 陰影與圓角 */
+  --shadow-sm: 0 4px 12px rgba(141, 110, 99, 0.08);
+  --shadow-md: 0 8px 24px rgba(141, 110, 99, 0.14);
+  --shadow-lg: 0 16px 40px rgba(141, 110, 99, 0.22);
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 32px;
+  
+  /* 字型設定 */
+  --font-family: 'Fredoka', 'Quicksand', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+}
+
+/* 2. 基礎重設與排版 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background: radial-gradient(circle at 50% 50%, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  position: relative;
+  line-height: 1.6;
+}
+
+/* 漂浮與亮星動畫背景 */
+.bg-sparkles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(255, 224, 130, 0.15) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(255, 138, 128, 0.1) 0%, transparent 25%),
+    radial-gradient(circle at 50% 30%, rgba(125, 212, 232, 0.1) 0%, transparent 20%);
+}
+
+/* 3. 全局標頭 */
+.global-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  background: rgba(255, 253, 249, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 3px solid var(--color-brown-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.emoji-logo {
+  font-size: 2.2rem;
+  animation: bounce 3s infinite ease-in-out;
+  display: inline-block;
+}
+
+.title-text {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: 0.05em;
+  background: linear-gradient(45deg, var(--color-text) 30%, #8D6E63 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-controls {
+  display: flex;
+  gap: 12px;
+}
+
+/* 控制按鈕 */
+.control-btn {
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  color: var(--color-text);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.control-btn:hover {
+  transform: translateY(-2px);
+  background: var(--bg-secondary);
+}
+
+.control-btn.active {
+  background: var(--color-cream);
+  border-color: #FBC02D;
+}
+
+.control-btn.hide {
+  display: none !important;
+}
+
+/* 4. 主容器 */
+.main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  position: relative;
+  z-index: 5;
+}
+
+.game-screen {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.game-screen.active {
+  display: flex;
+  opacity: 1;
+}
+
+/* 5. 歡迎畫面與模式卡片 */
+.welcome-content {
+  text-align: center;
+  max-width: 850px;
+  margin: 20px auto;
+}
+
+.hero-character-container {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  margin-bottom: 20px;
+}
+
+.floating-character {
+  font-size: 4.5rem;
+  user-select: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+
+.floating-character.cat {
+  animation: floatCat 4s infinite ease-in-out;
+}
+
+.floating-character.rabbit {
+  animation: floatRabbit 4.5s infinite ease-in-out;
+}
+
+.welcome-title {
+  font-size: 2.5rem;
+  color: var(--color-text);
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(93, 64, 55, 0.05);
+}
+
+.welcome-subtitle {
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+  margin-bottom: 40px;
+}
+
+.mode-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+  margin-top: 20px;
+}
+
+.mode-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 3px solid var(--color-brown-border);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.mode-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.mode-card-icon {
+  font-size: 3.5rem;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.bg-pink { background-color: #FFEBEE; color: var(--color-accent-pink); }
+.bg-blue { background-color: #E0F7FA; color: var(--color-accent-blue); }
+
+.mode-card h3 {
+  font-size: 1.6rem;
+  color: var(--color-text);
+}
+
+.mode-card p {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  min-height: 50px;
+}
+
+.play-btn {
+  border: none;
+  padding: 14px 36px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.pink-btn {
+  background-color: var(--color-accent-pink);
+  color: white;
+}
+.pink-btn:hover {
+  background-color: var(--color-accent-pink-hover);
+  transform: scale(1.04);
+}
+
+.blue-btn {
+  background-color: var(--color-accent-blue);
+  color: #004d40;
+}
+.blue-btn:hover {
+  background-color: var(--color-accent-blue-hover);
+  transform: scale(1.04);
+}
+
+/* 雙人模式題數選擇器 */
+.pvp-rounds-selector {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: -5px;
+}
+
+.selector-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.selector-buttons {
+  display: flex;
+  background: rgba(125, 212, 232, 0.1);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1.5px dashed var(--color-accent-blue);
+  width: 100%;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.round-select-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  border-radius: 8px;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.round-select-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--color-text);
+}
+
+.round-select-btn.active {
+  background: white;
+  color: #004d40;
+  box-shadow: 0 2px 6px rgba(0, 77, 64, 0.12);
+  border: 1px solid var(--color-accent-blue);
+}
+
+/* 6. 遊戲選單畫面 */
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.menu-header h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.badge {
+  background-color: var(--color-cream);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: 700;
+  border: 2px solid #FBC02D;
+  font-size: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+@media(min-width: 768px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.menu-item {
+  background: white;
+  border: 3px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s ease;
+}
+
+.menu-item:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent-pink);
+  box-shadow: var(--shadow-md);
+}
+
+.menu-item-icon {
+  font-size: 2.8rem;
+  background: var(--bg-secondary);
+  width: 75px;
+  height: 75px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.menu-item-info {
+  flex: 1;
+}
+
+.menu-item-info h4 {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+  color: var(--color-text);
+}
+
+.menu-item-info p {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.menu-footer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.standard-btn {
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  color: var(--color-text);
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.standard-btn:hover {
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+}
+
+.secondary-btn {
+  background-color: #ECEFF1;
+  border-color: #CFD8DC;
+}
+
+/* ==========================================================================
+   7. 魔法探索區 (Concept Explorer)
+   ========================================================================== */
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 3px dashed var(--color-brown-border);
+  padding-bottom: 12px;
+}
+
+.screen-header h3 {
+  font-size: 1.8rem;
+}
+
+.speak-btn {
+  background-color: #E8F5E9;
+  border: 2px solid #2E7D32;
+  color: #2E7D32;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.speak-btn:hover {
+  background-color: var(--color-mint);
+  transform: scale(1.05);
+}
+
+.explorer-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media(min-width: 800px) {
+  .explorer-layout {
+    grid-template-columns: 4.5fr 5.5fr;
+  }
+}
+
+.panel-card {
+  background: white;
+  border: 3px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.control-panel {
+  gap: 20px;
+}
+
+.selector-group, .slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.explore-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: #F5F5F5;
+  border: 2px solid #E0E0E0;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: var(--color-accent-blue);
+  color: white;
+  border-color: var(--color-accent-blue-hover);
+}
+
+.shape-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.shape-btn {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 2px solid var(--color-brown-border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.shape-btn.active {
+  background: var(--color-cream);
+  border-color: #FBC02D;
+  box-shadow: var(--shadow-sm);
+}
+
+.shape-icon {
+  font-size: 2.2rem;
+}
+
+.slider-wrapper {
+  position: relative;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.range-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  background: #E0E0E0;
+  outline: none;
+  border: 1px solid var(--color-brown-border);
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-accent-pink);
+  border: 3px solid white;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.15s ease;
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  background: var(--color-accent-pink-hover);
+}
+
+/* 離散量專屬的糖果選擇盤 */
+.discrete-candy-options {
+  display: flex;
+  gap: 12px;
+}
+.candy-opt-btn {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 2px solid var(--color-brown-border);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.candy-opt-btn.active {
+  background: var(--color-cream);
+  border-color: #FBC02D;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 擴增與約分互動按鈕 */
+.explorer-action-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+.action-bubble-btn {
+  flex: 1;
+  background: white;
+  border: 2px solid var(--color-accent-blue);
+  color: #006064;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.action-bubble-btn:hover {
+  background: #E0F7FA;
+  transform: translateY(-2px);
+}
+
+.explanation-box {
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  border-left: 6px solid var(--color-accent-pink);
+  font-size: 1.1rem;
+  color: var(--color-text);
+  line-height: 1.8;
+}
+
+.visual-panel {
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 380px;
+}
+
+.svg-container {
+  width: 100%;
+  max-width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.svg-container svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 15px rgba(141, 110, 99, 0.15));
+}
+
+.fraction-display-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.fraction-display-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--color-brown-border);
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+
+.fraction-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.formula-connector {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--color-accent-pink);
+}
+
+/* ==========================================================================
+   8. 關卡共用結構
+   ========================================================================== */
+.single-game-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 850px;
+  width: 100%;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.game-card-main {
+  background: white;
+  border: 3px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  width: 100%;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.game-status-bar {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px dashed #EEEEEE;
+  padding-bottom: 12px;
+}
+
+.game-title-info {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+
+.game-score-stars {
+  display: flex;
+  gap: 6px;
+  font-size: 1.4rem;
+}
+
+.question-text-box {
+  width: 100%;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* 答對/答錯視覺特效 */
+.feedback-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  animation: fadeIn 0.2s forwards;
+  pointer-events: none;
+}
+.feedback-overlay.correct {
+  display: flex;
+  background: rgba(232, 245, 233, 0.85);
+  border: 6px solid #4CAF50;
+}
+.feedback-overlay.wrong {
+  display: flex;
+  background: rgba(255, 235, 230, 0.85);
+  border: 6px solid #FF5722;
+}
+.feedback-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: popScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.feedback-emoji {
+  font-size: 5rem;
+}
+.feedback-msg {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   9. 關卡一專屬：等值披薩大配對 (Continuous Equivalent)
+   ========================================================================== */
+.g1-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+/* 配對目標魔法爐 */
+.g1-target-zone {
+  width: 220px;
+  height: 220px;
+  border: 4px dashed var(--color-accent-pink);
+  border-radius: 50%;
+  background-color: #FFF8F8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s;
+  box-shadow: inset 0 4px 10px rgba(255, 138, 128, 0.05);
+}
+.g1-target-zone.drag-hover {
+  background-color: #FFEBEE;
+  transform: scale(1.05);
+  border-color: var(--color-accent-pink-hover);
+  border-style: solid;
+}
+.g1-target-label {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  position: absolute;
+  bottom: 20px;
+}
+.g1-target-svg-wrap {
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 可選披薩托盤 */
+.g1-tray {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-brown-border);
+}
+.g1-pizza-card {
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  user-select: none;
+  touch-action: none;
+}
+.g1-pizza-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent-blue);
+}
+.g1-pizza-card:active {
+  cursor: grabbing;
+}
+.g1-pizza-svg-wrap {
+  width: 110px;
+  height: 110px;
+}
+.g1-pizza-fraction {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   10. 關卡二專屬：魔法糖果包裝員 (Discrete Equivalent)
+   ========================================================================== */
+.g2-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.g2-control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 600px;
+  align-items: center;
+}
+
+.g2-divider-select {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.g2-divider-btn {
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  color: var(--color-text);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: var(--font-family);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+.g2-divider-btn:hover {
+  background: var(--bg-secondary);
+}
+.g2-divider-btn.active {
+  background: var(--color-accent-blue);
+  color: white;
+  border-color: var(--color-accent-blue-hover);
+}
+
+/* 糖果禮盒區域 */
+.g2-box-container {
+  width: 100%;
+  max-width: 500px;
+  min-height: 240px;
+  background: #FFFDF9;
+  border: 4px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.g2-candy-grid-svg {
+  width: 100%;
+  max-width: 440px;
+  height: 200px;
+}
+
+/* ==========================================================================
+   11. 關卡三專屬：擴約分鍊金術 (Alchemical Multiplication/Division)
+   ========================================================================== */
+.g3-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+/* 鍊金天平與公式 */
+.g3-formula-board {
+  background: #FAFAFA;
+  border: 3px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 700px;
+}
+
+.g3-fraction-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 700;
+  font-size: 2.2rem;
+  line-height: 1.1;
+}
+
+/* 鍊金槽公式 */
+.g3-alchemy-fraction-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.8rem;
+  line-height: 1.1;
+  background: white;
+  border: 2px dashed #BCAAA4;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+}
+
+.g3-formula-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.g3-operator-label {
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+/* 拖放槽 */
+.g3-drop-slot {
+  width: 55px;
+  height: 55px;
+  border: 3px dashed var(--color-accent-pink);
+  border-radius: 12px;
+  background: #FFFDFD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #C62828;
+  transition: all 0.2s;
+  user-select: none;
+}
+.g3-drop-slot.drag-hover {
+  background: #FFEBEE;
+  border-style: solid;
+  transform: scale(1.08);
+}
+.g3-drop-slot.filled {
+  border-style: solid;
+  border-color: var(--color-accent-pink-hover);
+  background: #FFEBEE;
+}
+
+.g3-alchemy-fraction-block .bar {
+  width: 120px;
+  height: 3px;
+  background-color: var(--color-text);
+  margin: 6px 0;
+}
+
+/* 藥水瓶托盤 */
+.g3-potion-tray {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-brown-border);
+}
+
+.g3-potion {
+  width: 70px;
+  height: 90px;
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: grab;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+  user-select: none;
+  touch-action: none;
+}
+.g3-potion:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent-blue);
+}
+.g3-potion:active {
+  cursor: grabbing;
+}
+.g3-potion-bottle {
+  font-size: 2.2rem;
+  animation: floatCat 3s infinite ease-in-out;
+}
+.g3-potion-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   12. 關卡四專屬：數線跳跳尋寶記 (Number Line Explorer)
+   ========================================================================== */
+.g4-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+/* 數線畫布容器 */
+.g4-canvas-container {
+  width: 100%;
+  max-width: 750px;
+  height: 180px;
+  background: white;
+  border: 3px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.g4-number-line-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 卡片操作區 */
+.g4-card-group {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.g4-step-card {
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 24px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+  min-width: 100px;
+}
+.g4-step-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent-pink);
+  background: var(--bg-secondary);
+}
+.g4-step-card-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.g4-step-card-label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.g4-action-controls {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+/* ==========================================================================
+   13. 雙人對戰模式 (PvP Split Screen Elements)
+   ========================================================================== */
+.pvp-split-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+@media(min-width: 900px) {
+  .pvp-split-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}
+
+.pvp-header-banner {
+  width: 100%;
+  background: var(--color-cream);
+  border: 3px solid #FBC02D;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.pvp-target-box {
+  background: white;
+  border: 3px solid var(--color-accent-pink);
+  padding: 8px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  animation: popScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pvp-target-fraction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pvp-player-panel {
+  background: white;
+  border: 4px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.pvp-player-panel.p1 {
+  border-color: #B2EBF2;
+  background: #F9FCFD;
+}
+.pvp-player-panel.p2 {
+  border-color: #FFCDD2;
+  background: #FFFDFD;
+}
+
+.player-panel-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  border-bottom: 2px dashed #E0E0E0;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.player-score {
+  font-size: 1.4rem;
+  font-weight: 800;
+  padding: 4px 16px;
+  border-radius: 20px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.pvp-game-arena {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.pvp-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.pvp-opt-btn {
+  background: white;
+  border: 3px solid var(--color-brown-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 90px;
+}
+.pvp-opt-btn:hover {
+  transform: scale(1.05);
+  border-color: var(--color-accent-pink);
+}
+.p1 .pvp-opt-btn:hover {
+  border-color: var(--color-accent-blue-hover);
+}
+.pvp-opt-fraction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* 對戰反饋 */
+.pvp-feedback-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 40;
+  animation: fadeIn 0.15s forwards;
+  pointer-events: none;
+}
+.pvp-feedback-overlay.correct {
+  display: flex;
+  background: rgba(200, 230, 201, 0.85);
+  border: 6px solid #4CAF50;
+}
+.pvp-feedback-overlay.wrong {
+  display: flex;
+  background: rgba(255, 205, 210, 0.85);
+  border: 6px solid #FF5252;
+}
+
+/* ==========================================================================
+   14. 結算與祝賀畫面
+   ========================================================================== */
+.screen-result {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  padding: 40px 20px;
+}
+
+.result-medal {
+  font-size: 6rem;
+  animation: bounce 2s infinite ease-in-out;
+}
+
+.result-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.result-text {
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+  max-width: 500px;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+.result-score-stars {
+  font-size: 3rem;
+  margin: 10px 0;
+  color: var(--color-gold);
+}
+
+/* ==========================================================================
+   15. 頁尾與全域元素
+   ========================================================================== */
+.global-footer {
+  text-align: center;
+  padding: 24px;
+  border-top: 2px solid var(--color-brown-border);
+  background: #FFFDF9;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  z-index: 10;
+}
+
+.footer-slogan {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.footer-info {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footer-separator {
+  color: #D7CCC8;
+}
+
+/* 粒子容器 */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   16. 動畫效果定義
+   ========================================================================== */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes floatCat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(4deg); }
+}
+
+@keyframes floatRabbit {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(-4deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popScale {
+  0% { transform: scale(0.6); opacity: 0; }
+  90% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Dragging visual helpers */
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+/* ==========================================================================
+   17. 國小數學直式分數樣式 (符合微軟 Word 的 OMML 橫線分數格式)
+   ========================================================================== */
+.math-fraction {
+  display: inline-table !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+  border-collapse: collapse !important;
+  margin: 0 4.5px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+}
+
+.math-fraction .num {
+  display: table-row !important;
+  font-size: 0.85em !important;
+  padding: 0 4px !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+}
+
+.math-fraction .bar-row {
+  display: table-row !important;
+  height: 1px !important;
+  line-height: 0 !important;
+}
+
+.math-fraction .bar-cell {
+  display: table-cell !important;
+  border-top: 2px solid currentColor !important;
+  height: 0 !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  min-width: 16px !important;
+}
+
+.math-fraction .den {
+  display: table-row !important;
+  font-size: 0.85em !important;
+  padding: 0 4px !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+}
+
+/* 關卡一及關卡三的天平、PVP等自訂直式分數也使用同樣的 table 效果 */
+.g1-pizza-fraction, .g3-fraction-block, .pvp-opt-fraction, .pvp-target-fraction {
+  display: inline-table !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+  border-collapse: collapse !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+}
+.g1-pizza-fraction .num, .g3-fraction-block .num, .pvp-opt-fraction .num, .pvp-target-fraction .num {
+  display: table-row !important;
+  font-size: 0.85em !important;
+  text-align: center !important;
+  line-height: 1.15 !important;
+}
+.g1-pizza-fraction .bar-row, .g3-fraction-block .bar-row, .pvp-opt-fraction .bar-row, .pvp-target-fraction .bar-row {
+  display: table-row !important;
+  height: 1px !important;
+  line-height: 0 !important;
+}
+.g1-pizza-fraction .bar-cell, .g3-fraction-block .bar-cell, .pvp-opt-fraction .bar-cell, .pvp-target-fraction .bar-cell {
+  display: table-cell !important;
+  border-top: 2px solid currentColor !important;
+  height: 0 !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  min-width: 16px !important;
+}
+.g1-pizza-fraction .den, .g3-fraction-block .den, .pvp-opt-fraction .den, .pvp-target-fraction .den {
+  display: table-row !important;
+  font-size: 0.85em !important;
+  text-align: center !important;
+  line-height: 1.15 !important;
+}
+

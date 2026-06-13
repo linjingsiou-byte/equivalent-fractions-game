@@ -580,6 +580,47 @@ const App = {
       });
     });
 
+    // 魔法烘培秘笈彈窗控制
+    const modalGuide = document.getElementById('modal-secret-guide');
+    const openGuideBtns = [
+      document.getElementById('btn-welcome-secret-guide'),
+      document.getElementById('btn-menu-secret-guide')
+    ];
+    const closeGuideBtns = [
+      document.getElementById('btn-close-guide'),
+      document.getElementById('btn-close-guide-bottom')
+    ];
+
+    openGuideBtns.forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', () => {
+          SoundManager.playClick();
+          modalGuide.classList.add('active');
+          TTSManager.speak("打開分數魔法烘培秘笈！");
+        });
+      }
+    });
+
+    closeGuideBtns.forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', () => {
+          SoundManager.playClick();
+          modalGuide.classList.remove('active');
+          window.speechSynthesis.cancel(); // 關閉時停止朗讀
+        });
+      }
+    });
+
+    if (modalGuide) {
+      modalGuide.addEventListener('click', (e) => {
+        if (e.target === modalGuide) {
+          SoundManager.playClick();
+          modalGuide.classList.remove('active');
+          window.speechSynthesis.cancel();
+        }
+      });
+    }
+
     // 返回按鈕
     document.getElementById('btn-back-to-welcome').addEventListener('click', () => {
       SoundManager.playClick();

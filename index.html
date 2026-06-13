@@ -72,6 +72,9 @@
             <button class="play-btn blue-btn">雙人對戰</button>
           </div>
         </div>
+        <div class="welcome-action-row" style="margin-top: 32px; display: flex; justify-content: center;">
+          <button id="btn-welcome-secret-guide" class="standard-btn magic-guide-btn">📖 魔法烘培秘笈</button>
+        </div>
       </div>
     </section>
 
@@ -138,8 +141,9 @@
         </div>
       </div>
       
-      <div class="menu-footer">
+      <div class="menu-footer" style="gap: 16px;">
         <button id="btn-back-to-welcome" class="standard-btn secondary-btn">🔙 返回模式選擇</button>
+        <button id="btn-menu-secret-guide" class="standard-btn magic-guide-btn">📖 魔法烘培秘笈</button>
       </div>
     </section>
 
@@ -556,6 +560,109 @@
 
   <!-- Confetti container for celebration -->
   <div id="celebration-confetti-container" class="confetti-container"></div>
+
+  <!-- Modal: Magic Baking Guide -->
+  <div id="modal-secret-guide" class="modal-overlay">
+    <div class="modal-card-glass">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-emoji">📖</span>
+          <h3>分數魔法烘培秘笈</h3>
+        </div>
+        <button id="btn-close-guide" class="close-btn" title="關閉秘笈">✕</button>
+      </header>
+      <div class="modal-scroll-content">
+        
+        <section class="guide-section hero-note">
+          <h4>🧙‍♂️ 烘焙大師的等值分數秘訣</h4>
+          <p><strong>「等值分數，就是分量一樣多！」</strong></p>
+          <p>雖然分子（拿到的點心數量）和分母（平分成的總份數）數字變大或變小了，但在魔法盤子裡裝的點心，其實是<strong>一模一樣大、一樣多</strong>的喔！</p>
+        </section>
+
+        <section class="guide-section">
+          <div class="guide-subtitle">
+            <span class="guide-icon">🔮</span>
+            <h5>學習探索區：等值分數顯示器</h5>
+          </div>
+          <div class="guide-detail">
+            <p><strong>🍰 蛋糕連續量：</strong>一整個蛋糕切得越細（分母越大），著色的每一片就越小，但如果拿走對應的份數（分子），總大小還是一樣大喔！</p>
+            <p><strong>🍬 糖果離散量：</strong>一盒糖果有很多顆，要看它被<strong>「平分成幾組」</strong>（分母）而不是只看單顆顆數。例如：12 顆糖果平分成 3 組（每組 4 顆），拿走其中 1 組就是 <div class="math-fraction inline-frac"><span class="num">1</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 盒（共 4 顆）。</p>
+            <p class="tip-bubble">💡 <strong>探索秘訣：</strong>拉動拉桿切割蛋糕，並點擊 <strong>「擴分 (×2)」</strong> 或 <strong>「約分 (÷2)」</strong>，觀察分數數值與點心分量如何變化！</p>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <div class="guide-subtitle">
+            <span class="guide-icon">🌟</span>
+            <h5>關卡一：等值披薩大配對</h5>
+          </div>
+          <div class="guide-detail">
+            <p><strong>🍕 圖形等值與克服數字偏誤：</strong>不要被分子分母的數字大小騙了！<div class="math-fraction inline-frac"><span class="num">4</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">6</span></div> 雖然數字比 <div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 大，但在披薩盤上佔的面積是一模一樣的，它們就是<strong>等值分數</strong>。</p>
+            <p class="tip-bubble">💡 <strong>玩法秘訣：</strong>拖曳與盤子中等值的披薩放入魔法爐。如果放錯，魔法爐會以<strong>半透明重疊比對</strong>，讓你看清大小不同！</p>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <div class="guide-subtitle">
+            <span class="guide-icon">🍬</span>
+            <h5>關卡二：魔法糖果包裝員</h5>
+          </div>
+          <div class="guide-detail">
+            <p><strong>🍬 離散量分組包裝：</strong>如果顧客想要 <div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 盒馬卡龍，我們有不同的平分包裝法：</p>
+            <ul>
+              <li>平分成 3 組（分母為 3），拿走其中 2 組（一盒 12 顆的話，每組 4 顆，拿走 2 組共 8 顆）。</li>
+              <li>平分成 6 組（分母為 6），拿走其中 4 組（每組 2 顆，拿走 4 組共 8 顆）。</li>
+              <li>因為 <div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> = <div class="math-fraction inline-frac"><span class="num">4</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">6</span></div>，代表的糖果盒數與顆數完全相同！</li>
+            </ul>
+            <p class="tip-bubble">💡 <strong>玩法秘訣：</strong>先按按鈕決定要把這盒糖果「平分成幾組」；再點選虛線大框來拿走指定組數，完成包裝後出貨！</p>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <div class="guide-subtitle">
+            <span class="guide-icon">⚖️</span>
+            <h5>關卡三：擴約分鍊金術</h5>
+          </div>
+          <div class="guide-detail">
+            <p><strong>🧪 擴約分與乘除守恆法則：</strong></p>
+            <ul>
+              <li><strong>擴分魔法：</strong>分子和分母必須<strong>同時乘以相同的數</strong>（大於 1），分數大小才不變。</li>
+              <li><strong>約分魔法：</strong>分子 and 分母必須<strong>同時除以相同的數</strong>（公因數），分數大小才不變。</li>
+              <li>若分子、分母乘或除的數不同（例如分子乘 2、分母乘 3），比例就被破壞，魔法天平就會<strong>失去平衡而傾斜</strong>喔！</li>
+            </ul>
+            <p class="tip-bubble">💡 <strong>玩法秘訣：</strong>將乘除法藥水拖曳至分子與分母的槽中，只有雙邊都放入相同且正確的藥水，天平才會平衡並成功鍊金！</p>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <div class="guide-subtitle">
+            <span class="guide-icon">🏃</span>
+            <h5>關卡四：數線跳跳尋寶記</h5>
+          </div>
+          <div class="guide-detail">
+            <p><strong>🐰 分小數互換與數線等值：</strong>小數（如 0.1、0.2）是十進制，對應分母為 10 的分數（如 <div class="math-fraction inline-frac"><span class="num">1</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">10</span></div>、<div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">10</span></div>）。</p>
+            <p>在數線上，等值的分數與小數代表同一個點！例如：<div class="math-fraction inline-frac"><span class="num">4</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">5</span></div> = <div class="math-fraction inline-frac"><span class="num">8</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">10</span></div> = 0.8，小兔子跳到這兩個位置都會降落在同一個點上。</p>
+            <p class="tip-bubble">💡 <strong>玩法秘訣：</strong>觀察寶箱位置（分數或小數），選用合適的步長卡片，控制小兔子向左或向右跳，精準降落以開啟寶藏！</p>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <div class="guide-subtitle">
+            <span class="guide-icon">⚔️</span>
+            <h5>雙人烘焙對決 (搶答模式)</h5>
+          </div>
+          <div class="guide-detail">
+            <p><strong>🧁 極速概念整合：</strong>考驗等值分數配對、擴約分算式填空、分數與小數互換的敏捷度。先答對得 10 分，答錯扣 5 分！</p>
+            <p class="tip-bubble">💡 <strong>對決秘訣：</strong>點擊甜點按鈕（🧁 10題、🍩 20題、🍪 30題）自訂題數。雙方的選項順序會隨機打亂，專注看清自己盤中的分數吧！</p>
+          </div>
+        </section>
+
+      </div>
+      <footer class="modal-footer">
+        <button id="btn-close-guide-bottom" class="play-btn pink-btn" style="margin: 0; max-width: 200px;">我明白了！</button>
+      </footer>
+    </div>
+  </div>
 
   <!-- Include JavaScript logic -->
   <script src="js/app.js"></script>

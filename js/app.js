@@ -238,7 +238,7 @@ const SVGDrawer = {
   },
 
   // 繪製圓形切割蛋糕
-  drawCircleFraction(svgEl, den, num, colorFilled = "#FF8A80", colorEmpty = "#FFFFFF") {
+  drawCircleFraction(svgEl, den, num, colorFilled = "#FF8A80", colorEmpty = "#FFFFFF", multiplier = 1, animate = false) {
     svgEl.innerHTML = "";
     const cx = 140, cy = 140, r = 110;
     
@@ -295,10 +295,38 @@ const SVGDrawer = {
       });
       svgEl.appendChild(line);
     }
+
+    // 繪製新的切割線（切細點）
+    if (multiplier > 1) {
+      const totalSlices = den * multiplier;
+      const newAnglePerPart = 360 / totalSlices;
+      for (let j = 0; j < totalSlices; j++) {
+        if (j % multiplier === 0) continue; // 原本的線已畫，跳過
+
+        const angle = -90 + j * newAnglePerPart;
+        const rad = (angle * Math.PI) / 180;
+        const x = cx + r * Math.cos(rad);
+        const y = cy + r * Math.sin(rad);
+
+        const newCutLine = this.createSVGNode("line", {
+          x1: cx, y1: cy, x2: x, y2: y,
+          stroke: "#FF5252",
+          "stroke-width": 2.5,
+          style: `stroke-opacity: ${animate ? 0 : 1}; transition: stroke-opacity 0.6s ease-out;`
+        });
+        svgEl.appendChild(newCutLine);
+
+        if (animate) {
+          setTimeout(() => {
+            newCutLine.style.strokeOpacity = 1;
+          }, 50);
+        }
+      }
+    }
   },
 
   // 繪製長條形巧克力
-  drawRectFraction(svgEl, den, num, colorFilled = "#FF8A80", colorEmpty = "#FFFFFF") {
+  drawRectFraction(svgEl, den, num, colorFilled = "#FF8A80", colorEmpty = "#FFFFFF", multiplier = 1, animate = false) {
     svgEl.innerHTML = "";
     const xOffset = 20, yOffset = 90;
     const totalW = 240, totalH = 100;
@@ -320,7 +348,6 @@ const SVGDrawer = {
       const x = xOffset + i * stepW;
       const isFilled = i < num;
       
-      // 若是著色部分，畫實心矩形，注意圓角只適用於最左和最右
       const rx = (i === 0) ? 8 : 0;
       const ry = (i === 0) ? 8 : 0;
       
@@ -343,6 +370,29 @@ const SVGDrawer = {
       }
     }
     
+    // 繪製新的切割線（切細點）
+    if (multiplier > 1) {
+      const newStepW = totalW / (den * multiplier);
+      for (let j = 1; j < den * multiplier; j++) {
+        if (j % multiplier === 0) continue; // 原本的線已畫
+
+        const x = xOffset + j * newStepW;
+        const newCutLine = this.createSVGNode("line", {
+          x1: x, y1: yOffset, x2: x, y2: yOffset + totalH,
+          stroke: "#FF5252",
+          "stroke-width": 2.5,
+          style: `stroke-opacity: ${animate ? 0 : 1}; transition: stroke-opacity 0.6s ease-out;`
+        });
+        svgEl.appendChild(newCutLine);
+
+        if (animate) {
+          setTimeout(() => {
+            newCutLine.style.strokeOpacity = 1;
+          }, 50);
+        }
+      }
+    }
+
     // 再畫一次外框描邊，覆蓋邊緣
     const borderRect = this.createSVGNode("rect", {
       x: xOffset, y: yOffset, width: totalW, height: totalH,
@@ -354,14 +404,14 @@ const SVGDrawer = {
     svgEl.appendChild(borderRect);
   },
 
-  // 繪製離散量糖果盒 (點心禮盒)
+  // 繪製離散量甜甜圈盒 (點心禮盒)
   drawCandyFraction(svgEl, totalCandies, den, num, selectedGroups = [], interactive = false, onGroupClick = null) {
     svgEl.innerHTML = "";
     
     const h = 200;
     const candiesPerGroup = totalCandies / den;
     
-    // 糖果大小設定
+    // 甜甜圈大小設定
     const radius = 13;
     const spacingX = 33;
     const startX = 20;
@@ -379,20 +429,21 @@ const SVGDrawer = {
     svgEl.setAttribute("viewBox", `0 0 ${requiredW} ${h}`);
     
     if (totalCandies === 12) {
-      // 12顆排成 1 排。
+      // 12個排成 1 排。
       // 每組寬度 = candiesPerGroup * spacingX
       const y = 100;
       const groupWidth = candiesPerGroup * spacingX;
       
-      // 先繪製各組的虛線框
+      // 先繪製各組的虛線框與竹籤
       for (let g = 0; g < den; g++) {
         const isGroupSelected = selectedGroups.includes(g) || g < num; // 探索區是 g < num, 關卡二是點選
         const gX = startX + g * groupWidth;
         
+        // 1. 組框 (外緣虛線框)
         const groupBorder = this.createSVGNode("rect", {
           x: gX - 10,
           y: y - 25,
-          width: groupWidth + 13, // 修正寬度，確保完好的框住最右側的馬卡龍
+          width: groupWidth + 13, // 修正寬度，確保完好的框住最右側的甜甜圈
           height: 50,
           rx: 10,
           ry: 10,
@@ -408,37 +459,63 @@ const SVGDrawer = {
         }
         svgEl.appendChild(groupBorder);
         
-        // 繪製這組裡面的糖果
-        for (let c = 0; c < candiesPerGroup; c++) {
-          const cIdx = g * candiesPerGroup + c;
-          const cx = gX + c * spacingX + radius;
+        // 2. 竹籤 (僅在每組多於 1 個甜甜圈且該組被選取時顯示，模擬成串包裝)
+        if (candiesPerGroup > 1 && isGroupSelected) {
+          const stickLen = groupWidth + 12;
+          const stickLine = this.createSVGNode("line", {
+            x1: gX - 14,
+            y1: y,
+            x2: gX + groupWidth - 2,
+            y2: y,
+            stroke: "#d7ccc8",
+            "stroke-width": 5,
+            "stroke-linecap": "round",
+            style: `stroke-dasharray: ${stickLen}; stroke-dashoffset: ${stickLen}; transition: stroke-dashoffset 0.4s ease-out; ${interactive ? "cursor: pointer;" : ""}`
+          });
           
-          // 畫一顆馬卡龍
-          this.drawSingleCandy(svgEl, cx, y, radius, isGroupSelected, interactive, g, onGroupClick);
+          setTimeout(() => {
+            stickLine.style.strokeDashoffset = "0";
+          }, 30);
+
+          // 竹籤的深色圓形把手
+          const handle = this.createSVGNode("circle", {
+            cx: gX - 14,
+            cy: y,
+            r: 4.5,
+            fill: "#8d6e63",
+            style: interactive ? "cursor: pointer;" : ""
+          });
+
+          if (interactive && onGroupClick) {
+            [stickLine, handle].forEach(el => el.addEventListener("click", () => onGroupClick(g)));
+          }
+
+          svgEl.appendChild(stickLine);
+          svgEl.appendChild(handle);
+        }
+
+        // 3. 繪製組內的甜甜圈
+        for (let c = 0; c < candiesPerGroup; c++) {
+          const cx = gX + c * spacingX + radius;
+          const popDelay = candiesPerGroup > 1 ? `${((c + 0.3) / candiesPerGroup * 0.4).toFixed(2)}s` : null;
+          this.drawSingleDonut(svgEl, cx, y, radius, isGroupSelected, interactive, g, onGroupClick, popDelay);
         }
       }
     } else {
-      // 24顆排成 2 排，每排 12 顆。
-      // 當分成 den 組，每組有 candiesPerGroup 顆糖果。
-      // 為了美觀，我們將 24 顆糖果排成 2 排。
-      // 每組佔據的寬度為 (candiesPerGroup / 2) * spacingX。
-      // 這裡假設 candiesPerGroup 是偶數 (由於 den 限制為 24 的因數 2, 3, 4, 6, 8, 12，除了 den=24 外，每組都是偶數。
-      // 為了簡化，如果 candiesPerGroup 是一顆，就只佔半格；若是偶數，排成兩排)。
-      
+      // 24個排成 2 排，每排 12 個。
       const y1 = 70;
       const y2 = 130;
-      
       const groupWidth = colsPerGroup * spacingX;
       
       for (let g = 0; g < den; g++) {
         const isGroupSelected = selectedGroups.includes(g) || g < num;
         const gX = startX + g * groupWidth;
         
-        // 組框 (包含兩排糖果的高度)
+        // 1. 組框 (外緣虛線框)
         const groupBorder = this.createSVGNode("rect", {
           x: gX - 10,
           y: y1 - 25,
-          width: groupWidth + 13, // 修正寬度，確保完好的框住最右側的馬卡龍
+          width: groupWidth + 13,
           height: 110,
           rx: 12,
           ry: 12,
@@ -454,68 +531,144 @@ const SVGDrawer = {
         }
         svgEl.appendChild(groupBorder);
         
-        // 繪製組內糖果
+        // 2. 雙排竹籤
+        if (candiesPerGroup > 1 && isGroupSelected) {
+          const stickLen = groupWidth + 12;
+          // 第一排竹籤
+          const stickLine1 = this.createSVGNode("line", {
+            x1: gX - 14, y1: y1, x2: gX + groupWidth - 2, y2: y1,
+            stroke: "#d7ccc8", "stroke-width": 5, "stroke-linecap": "round",
+            style: `stroke-dasharray: ${stickLen}; stroke-dashoffset: ${stickLen}; transition: stroke-dashoffset 0.4s ease-out; ${interactive ? "cursor: pointer;" : ""}`
+          });
+          const handle1 = this.createSVGNode("circle", {
+            cx: gX - 14, cy: y1, r: 4.5, fill: "#8d6e63",
+            style: interactive ? "cursor: pointer;" : ""
+          });
+
+          // 第二排竹籤
+          const stickLine2 = this.createSVGNode("line", {
+            x1: gX - 14, y1: y2, x2: gX + groupWidth - 2, y2: y2,
+            stroke: "#d7ccc8", "stroke-width": 5, "stroke-linecap": "round",
+            style: `stroke-dasharray: ${stickLen}; stroke-dashoffset: ${stickLen}; transition: stroke-dashoffset 0.4s ease-out; ${interactive ? "cursor: pointer;" : ""}`
+          });
+          const handle2 = this.createSVGNode("circle", {
+            cx: gX - 14, cy: y2, r: 4.5, fill: "#8d6e63",
+            style: interactive ? "cursor: pointer;" : ""
+          });
+          
+          setTimeout(() => {
+            stickLine1.style.strokeDashoffset = "0";
+            stickLine2.style.strokeDashoffset = "0";
+          }, 30);
+
+          if (interactive && onGroupClick) {
+            [stickLine1, handle1, stickLine2, handle2].forEach(el => el.addEventListener("click", () => onGroupClick(g)));
+          }
+
+          svgEl.appendChild(stickLine1);
+          svgEl.appendChild(handle1);
+          svgEl.appendChild(stickLine2);
+          svgEl.appendChild(handle2);
+        }
+
+        // 3. 繪製組內甜甜圈
+        const colsCount = Math.ceil(candiesPerGroup / 2);
         for (let c = 0; c < candiesPerGroup; c++) {
-          // 排成 2 排：第一排先排，放滿再放第二排
           const row = c % 2;
           const col = Math.floor(c / 2);
-          
           const cx = gX + col * spacingX + radius;
           const cy = (row === 0) ? y1 : y2;
+          const popDelay = candiesPerGroup > 1 ? `${((col + 0.3) / colsCount * 0.4).toFixed(2)}s` : null;
           
-          this.drawSingleCandy(svgEl, cx, cy, radius, isGroupSelected, interactive, g, onGroupClick);
+          this.drawSingleDonut(svgEl, cx, cy, radius, isGroupSelected, interactive, g, onGroupClick, popDelay);
         }
       }
     }
   },
 
-  // 繪製一顆精美馬卡龍 (Macaron)
-  drawSingleCandy(svgEl, cx, cy, r, isActive, interactive, groupIdx, onClick) {
-    const mainColor = isActive ? "#FF8A80" : "#E0E0E0";
-    const creamColor = "#FFFFFF";
+  // 繪製一個精美甜甜圈 (Donut)
+  drawSingleDonut(svgEl, cx, cy, r, isActive, interactive, groupIdx, onClick, popDelay = null) {
+    const donutGroup = this.createSVGNode("g", {
+      style: `transform-origin: ${cx}px ${cy}px;`
+    });
+
+    const rInner = 5.5;
+    const doughColor = isActive ? "#F57C00" : "#E0E0E0";
+    const glazeColor = isActive ? "#FF8A80" : "#B0BEC5";
+    const strokeColor = "#8D6E63";
     const shadowColor = "rgba(0,0,0,0.06)";
 
     // 下層陰影
     const shadow = this.createSVGNode("ellipse", {
-      cx: cx, cy: cy + 3, rx: r, ry: r - 4,
+      cx: cx, cy: cy + 3, rx: r, ry: r - 3,
       fill: shadowColor
     });
-    svgEl.appendChild(shadow);
+    donutGroup.appendChild(shadow);
 
-    // 馬卡龍上半殼
-    const topShell = this.createSVGNode("path", {
-      d: `M ${cx - r} ${cy} A ${r} ${r - 3} 0 0 1 ${cx + r} ${cy} Z`,
-      fill: mainColor,
-      stroke: "#8D6E63",
-      "stroke-width": 1.5,
-      style: interactive ? "cursor: pointer;" : ""
-    });
+    // 麵團基底 (帶中空圓孔，evenodd 填充)
+    const doughPath = `M ${cx - r} ${cy} A ${r} ${r} 0 1 0 ${cx + r} ${cy} A ${r} ${r} 0 1 0 ${cx - r} ${cy} Z ` +
+                      `M ${cx - rInner} ${cy} A ${rInner} ${rInner} 0 1 1 ${cx + rInner} ${cy} A ${rInner} ${rInner} 0 1 1 ${cx - rInner} ${cy} Z`;
     
-    // 馬卡龍下半殼
-    const bottomShell = this.createSVGNode("path", {
-      d: `M ${cx - r} ${cy} A ${r} ${r - 3} 0 0 0 ${cx + r} ${cy} Z`,
-      fill: mainColor,
-      stroke: "#8D6E63",
+    const dough = this.createSVGNode("path", {
+      d: doughPath,
+      fill: doughColor,
+      stroke: strokeColor,
       "stroke-width": 1.5,
+      "fill-rule": "evenodd",
       style: interactive ? "cursor: pointer;" : ""
     });
+    donutGroup.appendChild(dough);
 
-    // 中間奶油夾心
-    const cream = this.createSVGNode("rect", {
-      x: cx - r + 3,
-      y: cy - 2,
-      width: (r - 3) * 2,
-      height: 4,
-      rx: 2,
-      ry: 2,
-      fill: creamColor,
-      stroke: "#8D6E63",
+    // 糖霜 (Glaze, 稍微收縮，evenodd 填充)
+    const rGlaze = r - 2;
+    const rGlazeInner = rInner + 1;
+    const glazePath = `M ${cx - rGlaze} ${cy} A ${rGlaze} ${rGlaze} 0 1 0 ${cx + rGlaze} ${cy} A ${rGlaze} ${rGlaze} 0 1 0 ${cx - rGlaze} ${cy} Z ` +
+                      `M ${cx - rGlazeInner} ${cy} A ${rGlazeInner} ${rGlazeInner} 0 1 1 ${cx + rGlazeInner} ${cy} A ${rGlazeInner} ${rGlazeInner} 0 1 1 ${cx - rGlazeInner} ${cy} Z`;
+                      
+    const glaze = this.createSVGNode("path", {
+      d: glazePath,
+      fill: glazeColor,
+      stroke: strokeColor,
       "stroke-width": 1,
+      "fill-rule": "evenodd",
       style: interactive ? "cursor: pointer;" : ""
     });
+    donutGroup.appendChild(glaze);
+
+    // 七彩灑糖 (僅在 active 時顯示)
+    const sprinkles = [];
+    if (isActive) {
+      const colors = ["#FFF", "#FFEB3B", "#00E676", "#29B6F6", "#E91E63"];
+      const sprinkleData = [
+        { dx: -6, dy: -5, rot: 30, color: colors[0] },
+        { dx: 6, dy: -4, rot: -20, color: colors[1] },
+        { dx: -5, dy: 5, rot: 45, color: colors[2] },
+        { dx: 4, dy: 5, rot: 75, color: colors[3] },
+        { dx: 0, dy: -7, rot: 10, color: colors[4] },
+        { dx: -7, dy: 0, rot: 90, color: colors[0] },
+        { dx: 7, dy: 1, rot: -60, color: colors[2] }
+      ];
+      
+      sprinkleData.forEach(data => {
+        const s = this.createSVGNode("rect", {
+          x: cx + data.dx - 1.5,
+          y: cy + data.dy - 0.7,
+          width: 3,
+          height: 1.4,
+          rx: 0.5,
+          ry: 0.5,
+          transform: `rotate(${data.rot}, ${cx + data.dx}, ${cy + data.dy})`,
+          fill: data.color,
+          style: interactive ? "cursor: pointer;" : ""
+        });
+        sprinkles.push(s);
+        donutGroup.appendChild(s);
+      });
+    }
 
     if (interactive && onClick) {
-      [topShell, bottomShell, cream].forEach(el => {
+      const elementsToBind = [dough, glaze, ...sprinkles];
+      elementsToBind.forEach(el => {
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           onClick(groupIdx);
@@ -523,9 +676,184 @@ const SVGDrawer = {
       });
     }
 
-    svgEl.appendChild(bottomShell);
-    svgEl.appendChild(cream);
-    svgEl.appendChild(topShell);
+    // 彈出動畫效果 (當有動畫延遲且是選取狀態時觸發，採用 CSS 3D 彈性動畫)
+    if (popDelay && isActive) {
+      donutGroup.style.animation = `donut-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${popDelay} both`;
+    }
+
+    svgEl.appendChild(donutGroup);
+  },
+
+  // 繪製蛋糕連續量模型（天平上使用）
+  drawContinuousModel(svgEl, cx, cy, r, num, den, multiplier = 1, animate = false) {
+    // 繪製圓底
+    const cakeBg = this.createSVGNode("circle", {
+      cx: cx, cy: cy, r: r,
+      fill: "#FFF9F2",
+      stroke: "#8D6E63",
+      "stroke-width": 1.5
+    });
+    svgEl.appendChild(cakeBg);
+
+    // 繪製原始分片
+    for (let i = 0; i < den; i++) {
+      const startAngle = (2 * Math.PI * i) / den - Math.PI / 2;
+      const endAngle = (2 * Math.PI * (i + 1)) / den - Math.PI / 2;
+      const x1 = cx + r * Math.cos(startAngle);
+      const y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle);
+      const y2 = cy + r * Math.sin(endAngle);
+
+      // 著色區塊
+      const isFilled = i < num;
+      if (isFilled) {
+        const slice = this.createSVGNode("path", {
+          d: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`,
+          fill: "#FF8A80",
+          stroke: "#8D6E63",
+          "stroke-width": 1
+        });
+        svgEl.appendChild(slice);
+      } else {
+        const sliceLine = this.createSVGNode("line", {
+          x1: cx, y1: cy, x2: x1, y2: y1,
+          stroke: "#8D6E63",
+          "stroke-width": 1
+        });
+        svgEl.appendChild(sliceLine);
+      }
+    }
+
+    // 再次繪製圓形邊框描邊以蓋過邊緣
+    const cakeBorder = this.createSVGNode("circle", {
+      cx: cx, cy: cy, r: r,
+      fill: "none",
+      stroke: "#8D6E63",
+      "stroke-width": 1.5
+    });
+    svgEl.appendChild(cakeBorder);
+
+    // 繪製新的切割線
+    if (multiplier > 1) {
+      const totalSlices = den * multiplier;
+      for (let j = 0; j < totalSlices; j++) {
+        if (j % multiplier === 0) continue;
+
+        const angle = (2 * Math.PI * j) / totalSlices - Math.PI / 2;
+        const x2 = cx + r * Math.cos(angle);
+        const y2 = cy + r * Math.sin(angle);
+
+        const newCutLine = this.createSVGNode("line", {
+          x1: cx, y1: cy, x2: x2, y2: y2,
+          stroke: "#FF5252",
+          "stroke-width": 1,
+          "stroke-opacity": animate ? 0 : 1
+        });
+
+        if (animate) {
+          const anim = this.createSVGNode("animate", {
+            attributeName: "stroke-opacity",
+            from: 0,
+            to: 1,
+            dur: "0.8s",
+            fill: "freeze"
+          });
+          newCutLine.appendChild(anim);
+        }
+        svgEl.appendChild(newCutLine);
+      }
+    }
+  },
+
+  // 繪製甜甜圈離散量模型（天平上使用）
+  drawDiscreteModel(svgEl, cx, cy, num, den, groupSize, drawSkewers = false, animate = false) {
+    const cols = den / groupSize;
+    const rows = groupSize;
+    
+    const dx = 9;
+    const dy = 8;
+    const r = 3;
+    const rInner = 1.1;
+    
+    const startX = cx - ((cols - 1) * dx) / 2;
+    const startY = cy - ((rows - 1) * dy) / 2;
+
+    // 1. 先繪製竹籤
+    if (drawSkewers) {
+      for (let c = 0; c < cols; c++) {
+        const x = startX + c * dx;
+        const yTop = startY - 4;
+        const yBottom = startY + (rows - 1) * dy + 4;
+        const stickLen = yBottom - yTop;
+
+        const stick = this.createSVGNode("line", {
+          x1: x,
+          y1: yTop,
+          x2: x,
+          y2: yBottom,
+          stroke: "#d7ccc8",
+          "stroke-width": 2,
+          "stroke-linecap": "round",
+          style: animate ? `stroke-dasharray: ${stickLen}; stroke-dashoffset: ${stickLen}; transition: stroke-dashoffset 0.6s ease-out;` : ""
+        });
+
+        if (animate) {
+          setTimeout(() => {
+            stick.style.strokeDashoffset = "0";
+          }, 30);
+        }
+
+        const handle = this.createSVGNode("circle", {
+          cx: x,
+          cy: yTop,
+          r: 1.6,
+          fill: "#8d6e63"
+        });
+
+        svgEl.appendChild(stick);
+        svgEl.appendChild(handle);
+      }
+    }
+
+    // 2. 繪製甜甜圈
+    for (let c = 0; c < cols; c++) {
+      const isColActive = c < (num / groupSize);
+      const glazeColor = isColActive ? "#FF8A80" : "#CFD8DC";
+      const strokeColor = isColActive ? "#8D6E63" : "#90A4AE";
+
+      for (let rIdx = 0; rIdx < rows; rIdx++) {
+        const x = startX + c * dx;
+        const y = startY + rIdx * dy;
+
+        const donutPath = `M ${x - r} ${y} A ${r} ${r} 0 1 0 ${x + r} ${y} A ${r} ${r} 0 1 0 ${x - r} ${y} Z ` +
+                          `M ${x - rInner} ${y} A ${rInner} ${rInner} 0 1 1 ${x + rInner} ${y} A ${rInner} ${rInner} 0 1 1 ${x - rInner} ${y} Z`;
+
+        const donut = this.createSVGNode("path", {
+          d: donutPath,
+          fill: glazeColor,
+          stroke: strokeColor,
+          "stroke-width": 0.6,
+          "fill-rule": "evenodd"
+        });
+
+        if (animate && isColActive) {
+          const popDelay = `${((rIdx + 0.3) / rows * 0.6).toFixed(2)}s`;
+          const popAnim = this.createSVGNode("animateTransform", {
+            attributeName: "transform",
+            type: "scale",
+            values: "1;1.25;0.9;1.05;1",
+            keyTimes: "0;0.3;0.6;0.8;1",
+            dur: "0.4s",
+            begin: popDelay,
+            fill: "freeze"
+          });
+          donut.setAttribute("style", `transform-origin: ${x}px ${y}px;`);
+          donut.appendChild(popAnim);
+        }
+
+        svgEl.appendChild(donut);
+      }
+    }
   }
 };
 
@@ -788,9 +1116,10 @@ const Explorer = {
 
   start() {
     this.bindEvents();
+    this.updateSliders();
     this.render();
     
-    const introText = "進入魔法分數儀。你可以滑動拉桿來切割蛋糕，或是把糖果分組包裝，來觀察等值分數的秘密！";
+    const introText = "進入魔法分數儀。你可以滑動拉桿來切割蛋糕，或是把甜甜圈分組包裝，來觀察等值分數的秘密！";
     TTSManager.speak(introText);
   },
 
@@ -808,6 +1137,7 @@ const Explorer = {
       tabDisc.classList.remove('active');
       panelCont.style.display = 'flex';
       panelDisc.style.display = 'none';
+      this.updateSliders();
       this.render();
     };
 
@@ -818,6 +1148,7 @@ const Explorer = {
       tabCont.classList.remove('active');
       panelDisc.style.display = 'flex';
       panelCont.style.display = 'none';
+      this.updateSliders();
       this.render();
     };
 
@@ -889,21 +1220,29 @@ const Explorer = {
       this.render();
     };
 
-    // 離散量：分母分子拉桿
+    // 離散量：分母分子拉桿 (採用 oninput 平滑移動 + onchange 釋放對齊雙軌設計，防止瀏覽器拖曳中斷卡死)
     sliderDiscDen.oninput = (e) => {
       let val = parseInt(e.target.value);
-      // 離散量分母必須是顆數的因數，以便「平分」！
-      // 若不是因數，我們尋找最近的因數
       const factors = this.getFactors(this.discreteTotal);
-      val = this.getClosestFactor(val, factors);
-      sliderDiscDen.value = val;
-      this.discreteDen = val;
+      const closest = this.getClosestFactor(val, factors);
+      
+      this.discreteDen = closest;
+      document.getElementById('explorer-discrete-den-val').innerText = `${closest} 組`;
 
       sliderDiscNum.max = this.discreteDen;
       if (this.discreteNum > this.discreteDen) {
         this.discreteNum = this.discreteDen;
         sliderDiscNum.value = this.discreteNum;
+        document.getElementById('explorer-discrete-num-val').innerText = `${this.discreteNum} 組`;
       }
+      this.render();
+    };
+
+    sliderDiscDen.onchange = (e) => {
+      const factors = this.getFactors(this.discreteTotal);
+      const closest = this.getClosestFactor(parseInt(e.target.value), factors);
+      sliderDiscDen.value = closest;
+      this.discreteDen = closest;
       this.render();
     };
 
@@ -912,7 +1251,7 @@ const Explorer = {
       this.render();
     };
 
-    // 擴分與約分按鈕
+    // 切細點與成串包裝按鈕
     document.getElementById('btn-explorer-multiply').onclick = () => {
       SoundManager.playClick();
       this.applyEquivalentAction(2); // x2
@@ -942,52 +1281,89 @@ const Explorer = {
     return factors.reduce((prev, curr) => Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev);
   },
 
-  // 點擊擴分或約分按鈕
+  // 點擊切細點或成串包裝按鈕
   applyEquivalentAction(factor) {
     if (this.mode === 'continuous') {
       if (factor === 2) {
         if (this.continuousDen * 2 <= 16) {
-          this.continuousDen *= 2;
-          this.continuousNum *= 2;
-          this.updateSliders();
-          this.render();
-          this.speakEquivalence(factor);
+          // 播放「切細點」漸現動畫！
+          // 我們渲染時，將左側 SVG 進行切細渲染
+          this.render('multiply', 2);
+          
+          // 延遲 1 秒（等動畫播放完畢）後，才真正更新資料狀態並重新渲染！
+          setTimeout(() => {
+            this.continuousDen *= 2;
+            this.continuousNum *= 2;
+            this.updateSliders();
+            this.render();
+            this.speakEquivalence(factor);
+          }, 1000);
         } else {
-          TTSManager.speak("分母太大囉！最大只能到十六分之幾喔！");
+          TTSManager.speak("蛋糕切太細囉！最大只能平分成十六份喔！");
         }
       } else if (factor === 0.5) {
         if (this.continuousDen % 2 === 0 && this.continuousNum % 2 === 0) {
+          // 蛋糕成串包裝（合併），我們可以直接更新資料，此時右側會顯示新等值，左側會變為原狀態
           this.continuousDen /= 2;
           this.continuousNum /= 2;
           this.updateSliders();
           this.render();
           this.speakEquivalence(factor);
         } else {
-          TTSManager.speak("分子或分母不能被二整除，所以沒辦法約分喔！");
+          TTSManager.speak("拿走的份數或平分的份數不能被二整除，沒辦法兩兩合併喔！");
         }
       }
     } else {
-      // 離散量
+      // 離散量 (分甜甜圈)
       if (factor === 2) {
         const nextDen = this.discreteDen * 2;
         if (nextDen <= 12 && this.discreteTotal % nextDen === 0) {
-          this.discreteDen = nextDen;
-          this.discreteNum *= 2;
-          this.updateSliders();
-          this.render();
-          this.speakEquivalence(factor);
+          // 甜甜圈切細點：我們將左側畫布渲染為切細後的狀態（讓新的小竹籤動畫展開）
+          const svgLeftContainer = document.getElementById('explorer-svg-left');
+          svgLeftContainer.innerHTML = "";
+          const svgLeft = SVGDrawer.createSVGNode("svg", {
+            width: "100%", height: "100%", viewBox: "0 0 280 200"
+          });
+          svgLeftContainer.appendChild(svgLeft);
+          SVGDrawer.drawCandyFraction(svgLeft, this.discreteTotal, nextDen, this.discreteNum * 2, [], false, null);
+
+          // 延遲 1 秒後才真正更新資料狀態
+          setTimeout(() => {
+            this.discreteDen = nextDen;
+            this.discreteNum *= 2;
+            this.updateSliders();
+            this.render();
+            this.speakEquivalence(factor);
+          }, 1000);
         } else {
           TTSManager.speak("沒辦法再平分成更多整數組囉！");
         }
       } else if (factor === 0.5) {
         if (this.discreteDen % 2 === 0 && this.discreteNum % 2 === 0) {
-          this.discreteDen /= 2;
-          this.discreteNum /= 2;
-          this.updateSliders();
-          this.render();
-          this.speakEquivalence(factor);
+          // 甜甜圈成串包裝：我們會將甜甜圈串成大竹籤！
+          const nextDen = this.discreteDen / 2;
+          const nextNum = this.discreteNum / 2;
+          
+          const svgLeftContainer = document.getElementById('explorer-svg-left');
+          svgLeftContainer.innerHTML = "";
+          const svgLeft = SVGDrawer.createSVGNode("svg", {
+            width: "100%", height: "100%", viewBox: "0 0 280 200"
+          });
+          svgLeftContainer.appendChild(svgLeft);
+          
+          // 在左邊渲染合併後的包裝方式，觸發大竹籤穿刺動畫
+          SVGDrawer.drawCandyFraction(svgLeft, this.discreteTotal, nextDen, nextNum, [], false, null);
+          
+          // 延遲 1 秒後真正更新數值
+          setTimeout(() => {
+            this.discreteDen = nextDen;
+            this.discreteNum = nextNum;
+            this.updateSliders();
+            this.render();
+            this.speakEquivalence(factor);
+          }, 1000);
         } else {
-          TTSManager.speak("沒辦法約分囉！");
+          TTSManager.speak("組數拿走的部分沒辦法兩兩打包成一串喔！");
         }
       }
     }
@@ -1005,15 +1381,15 @@ const Explorer = {
     }
   },
 
-  render() {
-    const svgContainer = document.getElementById('explorer-svg-container');
-    
-    // 建立臨時的 SVG
-    const svg = SVGDrawer.createSVGNode("svg", {
-      width: "100%", height: "100%", viewBox: "0 0 280 280"
-    });
-    svgContainer.innerHTML = "";
-    svgContainer.appendChild(svg);
+  render(animateType = null, animateVal = 1) {
+    const svgLeftContainer = document.getElementById('explorer-svg-left');
+    const svgRightContainer = document.getElementById('explorer-svg-right');
+    const rightBox = document.getElementById('explorer-svg-right-box');
+    const eqConnector = document.getElementById('exp-eq-connector');
+    const eqCard = document.getElementById('exp-eq-card');
+
+    svgLeftContainer.innerHTML = "";
+    svgRightContainer.innerHTML = "";
 
     let num, den, numText, denText;
 
@@ -1021,16 +1397,73 @@ const Explorer = {
       num = this.continuousNum;
       den = this.continuousDen;
       
-      // 更新拉桿氣泡文字
       document.getElementById('explorer-den-val').innerText = `${den} 份`;
       document.getElementById('explorer-num-val').innerText = `${num} 份`;
+    } else {
+      num = this.discreteNum;
+      den = this.discreteDen;
       
-      if (this.shape === 'circle') {
-        SVGDrawer.drawCircleFraction(svg, den, num, "#FF8A80", "#FFFDF6");
+      document.getElementById('explorer-discrete-den-val').innerText = `${den} 組`;
+      document.getElementById('explorer-discrete-num-val').innerText = `${num} 組`;
+    }
+
+    // 確定等值分數
+    let eqNum, eqDen;
+    let hasEq = false;
+    if (den * 2 <= 16) {
+      eqNum = num * 2;
+      eqDen = den * 2;
+      hasEq = true;
+    } else if (den % 2 === 0 && num % 2 === 0) {
+      eqNum = num / 2;
+      eqDen = den / 2;
+      hasEq = true;
+    }
+
+    // 建立臨時的 SVG - 左邊 (原本的分數)
+    const svgLeft = SVGDrawer.createSVGNode("svg", {
+      width: "100%", height: "100%", viewBox: this.mode === 'continuous' ? "0 0 280 280" : "0 0 280 200"
+    });
+    svgLeftContainer.appendChild(svgLeft);
+
+    // 建立臨時的 SVG - 右邊 (變換等值分數)
+    let svgRight = null;
+    if (hasEq) {
+      rightBox.style.display = "flex";
+      eqConnector.style.display = "flex";
+      eqCard.style.display = "flex";
+
+      svgRight = SVGDrawer.createSVGNode("svg", {
+        width: "100%", height: "100%", viewBox: this.mode === 'continuous' ? "0 0 280 280" : "0 0 280 200"
+      });
+      svgRightContainer.appendChild(svgRight);
+    } else {
+      rightBox.style.display = "none";
+      eqConnector.style.display = "none";
+      eqCard.style.display = "none";
+    }
+
+    if (this.mode === 'continuous') {
+      const isCircle = this.shape === 'circle';
+      const multiplier = animateType === 'multiply' ? animateVal : 1;
+      const animate = animateType === 'multiply';
+
+      // 繪製左邊
+      if (isCircle) {
+        SVGDrawer.drawCircleFraction(svgLeft, den, num, "#FF8A80", "#FFFDF6", multiplier, animate);
       } else {
-        SVGDrawer.drawRectFraction(svg, den, num, "#FF8A80", "#FFFDF6");
+        SVGDrawer.drawRectFraction(svgLeft, den, num, "#FF8A80", "#FFFDF6", multiplier, animate);
       }
-      
+
+      // 繪製右邊
+      if (hasEq && svgRight) {
+        if (isCircle) {
+          SVGDrawer.drawCircleFraction(svgRight, eqDen, eqNum, "#FF8A80", "#FFFDF6", 1, false);
+        } else {
+          SVGDrawer.drawRectFraction(svgRight, eqDen, eqNum, "#FF8A80", "#FFFDF6", 1, false);
+        }
+      }
+
       numText = num;
       denText = den;
       
@@ -1041,27 +1474,25 @@ const Explorer = {
       
       // 產生解說
       const fractionStr = `<span class="math-fraction"><span class="num">${num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${den}</span></span>`;
-      const shapeWord = this.shape === 'circle' ? "圓形蛋糕" : "長條巧克力";
+      const shapeWord = isCircle ? "圓形蛋糕" : "長條巧克力";
       
       let expHTML = `把 1 個 <strong>${shapeWord}</strong> 平分成 <strong>${den}</strong> 份，拿走其中的 <strong>${num}</strong> 份，就是拿走了 <strong>${fractionStr}</strong> 個。`;
       
-      // 檢查等值分數
       this.checkAndRenderEquivalence(num, den, expHTML);
 
     } else {
-      // 離散量
-      num = this.discreteNum;
-      den = this.discreteDen;
+      // 離散 (分甜甜圈)
       const total = this.discreteTotal;
       const candiesPerGroup = total / den;
       const totalSelected = num * candiesPerGroup;
 
-      document.getElementById('explorer-discrete-den-val').innerText = `${den} 組`;
-      document.getElementById('explorer-discrete-num-val').innerText = `${num} 組`;
+      // 繪製左邊 (探索區離散甜甜圈)
+      SVGDrawer.drawCandyFraction(svgLeft, total, den, num, [], false, null);
 
-      // 重新繪製離散 SVG
-      svg.setAttribute("viewBox", "0 0 440 200");
-      SVGDrawer.drawCandyFraction(svg, total, den, num);
+      // 繪製右邊 (等值分數甜甜圈，將自動帶有 skewers 串好效果)
+      if (hasEq && svgRight) {
+        SVGDrawer.drawCandyFraction(svgRight, total, eqDen, eqNum, [], false, null);
+      }
 
       numText = num;
       denText = den;
@@ -1072,21 +1503,18 @@ const Explorer = {
 
       const fractionStr = `<span class="math-fraction"><span class="num">${num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${den}</span></span>`;
       
-      let expHTML = `一盒有 <strong>${total}</strong> 顆馬卡龍。平分成 <strong>${den}</strong> 組（每組有 <strong>${candiesPerGroup}</strong> 顆）。<br>
-                     拿走 <strong>${num}</strong> 組（共 <strong>${totalSelected}</strong> 顆），代表拿走了 <strong>${fractionStr}</strong> 盒。`;
+      let expHTML = `一盒有 <strong>${total}</strong> 個甜甜圈。平分成 <strong>${den}</strong> 組（每組有 <strong>${candiesPerGroup}</strong> 個）。<br>
+                     拿走 <strong>${num}</strong> 組（共 <strong>${totalSelected}</strong> 個），代表拿走了 <strong>${fractionStr}</strong> 盒。`;
       
       this.checkAndRenderEquivalence(num, den, expHTML, true, total);
     }
   },
 
-  // 檢查是否有約分等值分數，並在介面上繪製
   checkAndRenderEquivalence(num, den, baseExplanation, isDiscrete = false, total = 12) {
     const eqConnector = document.getElementById('exp-eq-connector');
     const eqCard = document.getElementById('exp-eq-card');
     const explanationBox = document.getElementById('explorer-explanation');
 
-    // 尋找簡單等值分數做比對顯示 (擴分乘以 2)
-    // 假設我們在探索區，永遠在右側附帶展示它的擴分 F*2 (若分母在範圍內) 或它的約分 F/2
     let eqNum, eqDen;
     let hasEq = false;
 
@@ -1101,7 +1529,7 @@ const Explorer = {
     }
 
     if (hasEq) {
-      eqConnector.style.display = "block";
+      eqConnector.style.display = "flex";
       eqCard.style.display = "flex";
       document.getElementById('exp-eq-num').innerText = eqNum;
       document.getElementById('exp-eq-den').innerText = eqDen;
@@ -1112,9 +1540,8 @@ const Explorer = {
       
       let extraExp = `<br>✨ <strong>等值分數發現！</strong><br>我們發現：${baseFracStr} 和 ${eqFracStr} 的大小是一模一樣的喔！`;
       if (isDiscrete) {
-        const groupCount1 = candiesPerGroup = total / den;
-        const groupCount2 = total / eqDen;
-        extraExp += `<br>因為拿走的分量都是 <strong>${num * groupCount1}</strong> 顆馬卡龍。`;
+        const groupCount1 = total / den;
+        extraExp += `<br>因為拿走的分量都是 <strong>${num * groupCount1}</strong> 個甜甜圈。`;
       }
       
       explanationBox.innerHTML = baseExplanation + extraExp;
@@ -1135,7 +1562,7 @@ const Explorer = {
       const fracText = TTSManager.fractionToText(this.discreteNum, this.discreteDen);
       const candiesPerGroup = this.discreteTotal / this.discreteDen;
       const totalSelected = this.discreteNum * candiesPerGroup;
-      text = `一盒有${this.discreteTotal}顆馬卡龍。平分成${this.discreteDen}組，拿走${this.discreteNum}組，共是${totalSelected}顆，也就是${fracText}盒。`;
+      text = `一盒有${this.discreteTotal}個甜甜圈。平分成${this.discreteDen}組，拿走${this.discreteNum}組，共是${totalSelected}個，也就是${fracText}盒。`;
     }
     TTSManager.speak(text);
   },
@@ -1144,16 +1571,16 @@ const Explorer = {
     if (this.mode === 'continuous') {
       const fracText = TTSManager.fractionToText(this.continuousNum, this.continuousDen);
       if (factor === 2) {
-        TTSManager.speak(`擴分成功！分子和分母同時乘以二，得到新的分數是：${fracText}。兩邊一樣多喔！`);
+        TTSManager.speak(`切細點成功！分子和分母同時乘以二，得到新的分數是：${fracText}。兩邊一樣多喔！`);
       } else {
-        TTSManager.speak(`約分成功！分子和分母同時除以二，得到新的分數是：${fracText}。大小完全一樣！`);
+        TTSManager.speak(`成串包裝成功！分子和分母同時除以二，得到新的分數是：${fracText}。大小完全一樣！`);
       }
     } else {
       const fracText = TTSManager.fractionToText(this.discreteNum, this.discreteDen);
       if (factor === 2) {
-        TTSManager.speak(`擴分！平分組數變多，新分數是${fracText}盒，顆數不變。`);
+        TTSManager.speak(`切細點！平分組數變多，新分數是${fracText}盒，個數不變。`);
       } else {
-        TTSManager.speak(`約分！組數合併，新分數是${fracText}盒，大小不變！`);
+        TTSManager.speak(`成串包裝！組數合併，新分數是${fracText}盒，大小不變！`);
       }
     }
   }
@@ -1492,7 +1919,7 @@ const Game1 = {
 };
 
 // ==========================================================================
-// 8. 🍬 關卡二：魔法糖果包裝員 (Level 2: Discrete Fractions)
+// 8. 🍩 關卡二：魔法甜甜圈包裝員 (Level 2: Discrete Fractions)
 // ==========================================================================
 const Game2 = {
   currentQuestion: 0,
@@ -1517,20 +1944,20 @@ const Game2 = {
     this.currentQuestion = 0;
     this.scoreStars = 5;
 
-    // 題目池：目標分數 + 總糖果顆數 (固定12顆/24顆，因應課本情境，擴展為 12 題)
+    // 題目池：目標分數 + 總甜甜圈個數 (固定12個/24個，因應課本情境，擴展為 12 題)
     const pool = [
-      { target: { num: 1, den: 2 }, total: 12, text: "我要買二分之一盒馬卡龍。" },
-      { target: { num: 2, den: 3 }, total: 12, text: "請給我三分之二盒馬卡龍。" },
-      { target: { num: 3, den: 4 }, total: 12, text: "我要打包四分之三盒馬卡龍。" },
-      { target: { num: 1, den: 3 }, total: 12, text: "我想買三分之一盒馬卡龍。" },
-      { target: { num: 5, den: 6 }, total: 12, text: "請幫我打包六分之五盒馬卡龍。" },
-      { target: { num: 1, den: 4 }, total: 12, text: "我想買四分之一盒馬卡龍。" },
-      { target: { num: 1, den: 6 }, total: 12, text: "請給我六分之一盒馬卡龍。" },
-      { target: { num: 2, den: 4 }, total: 12, text: "請給我四分之二盒馬卡龍。" },
-      { target: { num: 2, den: 6 }, total: 12, text: "我要買六分之二盒馬卡龍。" },
-      { target: { num: 3, den: 6 }, total: 12, text: "請給我六分之三盒馬卡龍。" },
-      { target: { num: 1, den: 2 }, total: 24, text: "我要買二分之一盒馬卡龍。" },
-      { target: { num: 3, den: 4 }, total: 24, text: "我要打包四分之三盒馬卡龍。" }
+      { target: { num: 1, den: 2 }, total: 12, text: "我要買二分之一盒甜甜圈。" },
+      { target: { num: 2, den: 3 }, total: 12, text: "請給我三分之二盒甜甜圈。" },
+      { target: { num: 3, den: 4 }, total: 12, text: "我要打包四分之三盒甜甜圈。" },
+      { target: { num: 1, den: 3 }, total: 12, text: "我想買三分之一盒甜甜圈。" },
+      { target: { num: 5, den: 6 }, total: 12, text: "請幫我打包六分之五盒甜甜圈。" },
+      { target: { num: 1, den: 4 }, total: 12, text: "我想買四分之一盒甜甜圈。" },
+      { target: { num: 1, den: 6 }, total: 12, text: "請給我六分之一盒甜甜圈。" },
+      { target: { num: 2, den: 4 }, total: 12, text: "請給我四分之二盒甜甜圈。" },
+      { target: { num: 2, den: 6 }, total: 12, text: "我要買六分之二盒甜甜圈。" },
+      { target: { num: 3, den: 6 }, total: 12, text: "請給我六分之三盒甜甜圈。" },
+      { target: { num: 1, den: 2 }, total: 24, text: "我要買二分之一盒甜甜圈。" },
+      { target: { num: 3, den: 4 }, total: 24, text: "我要打包四分之三盒甜甜圈。" }
     ];
     this.shuffle(pool);
     this.questions = pool.slice(0, this.totalQuestions);
@@ -1584,10 +2011,10 @@ const Game2 = {
 
     // 更新題目文字
     const reqText = TTSManager.fractionToText(this.targetFrac.num, this.targetFrac.den);
-    document.getElementById('g2-question-text').innerHTML = `顧客想要買分量為 <span class="math-fraction"><span class="num">${this.targetFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.targetFrac.den}</span></span> 盒（${reqText}盒）馬卡龍。<br>
-                                                              一盒有 <strong>12</strong> 顆馬卡龍，請幫忙進行打包！`;
+    document.getElementById('g2-question-text').innerHTML = `顧客想要買分量為 <span class="math-fraction"><span class="num">${this.targetFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.targetFrac.den}</span></span> 盒（${reqText}盒）甜甜圈。<br>
+                                                              一盒有 <strong>${this.totalCandies}</strong> 個甜甜圈，請幫忙進行打包！`;
     
-    TTSManager.speak(`第${this.currentQuestion + 1}題：顧客想要買${reqText}盒馬卡龍。一盒有十二顆。請先點選按鈕決定要平分成幾組，再點選包裝袋選取正確的分量！`);
+    TTSManager.speak(`第${this.currentQuestion + 1}題：顧客想要買${reqText}盒甜甜圈。一盒有${this.totalCandies === 24 ? '二十四' : '十二'}個。請先點選按鈕決定要平分成幾組，再點選包裝袋選取正確的分量！`);
 
     this.renderBox();
     
@@ -1601,7 +2028,7 @@ const Game2 = {
     const svg = document.getElementById('g2-candy-svg');
     svg.innerHTML = "";
     
-    // 繪製互動式離散糖果
+    // 繪製互動式離散甜甜圈
     SVGDrawer.drawCandyFraction(svg, this.totalCandies, this.playerDen, 0, this.selectedGroups, true, (gIdx) => {
       SoundManager.playClick();
       // 切換選取狀態
@@ -1640,9 +2067,9 @@ const Game2 = {
       const reqText = TTSManager.fractionToText(this.targetFrac.num, this.targetFrac.den);
       const playerFracText = TTSManager.fractionToText(this.selectedGroups.length, this.playerDen);
       
-      fMsg.innerHTML = `出貨成功！<br>${reqText}盒 剛好是 ${playerPickedCount} 顆馬卡龍！`;
+      fMsg.innerHTML = `出貨成功！<br>${reqText}盒 剛好是 ${playerPickedCount} 個甜甜圈！`;
       
-      TTSManager.speak(`打包正確，出貨成功！您將十二顆馬卡龍平分成${this.playerDen}組，選了${this.selectedGroups.length}組，也就是${playerFracText}盒，剛好是${playerPickedCount}顆！和顧客要求的${reqText}盒大小一樣多喔！`);
+      TTSManager.speak(`打包正確，出貨成功！您將${this.totalCandies === 24 ? '二十四' : '十二'}個甜甜圈平分成${this.playerDen}組，選了${this.selectedGroups.length}組，也就是${playerFracText}盒，剛好是${playerPickedCount}個！和顧客要求的${reqText}盒大小一樣多喔！`);
 
       setTimeout(() => {
         this.currentQuestion++;
@@ -1667,7 +2094,7 @@ const Game2 = {
       const reqText = TTSManager.fractionToText(this.targetFrac.num, this.targetFrac.den);
       fMsg.innerHTML = `顆數不對喔！<br>顧客要的是 ${reqText} 盒（共 ${correctCount} 顆）`;
       
-      TTSManager.speak(`不對喔，顧客要的是${reqText}盒，這代表需要${correctCount}顆馬卡龍。您現在只包裝了${playerPickedCount}顆。您可以試著平分成三組或四組，再選取正確的組數喔！`);
+      TTSManager.speak(`不對喔，顧客要的是${reqText}盒，這代表需要${correctCount}個甜甜圈。您現在只包裝了${playerPickedCount}個。您可以試著調整平分組數，再選取正確的組數喔！`);
 
       setTimeout(() => {
         feedback.style.display = "none";
@@ -1678,18 +2105,18 @@ const Game2 = {
   endGame() {
     App.lastFinishedGame = 2;
     document.getElementById('result-stars').innerText = "⭐".repeat(this.scoreStars) + "☆".repeat(5 - this.scoreStars);
-    document.getElementById('result-medal').innerText = "🍬";
-    document.getElementById('result-title').innerText = "點心包裝專家！";
-    document.getElementById('result-text').innerText = "你成功幫小動物顧客們包裝了正確分量的馬卡龍。離散量分數的等值關係也難不倒你了！";
+    document.getElementById('result-medal').innerText = "🍩";
+    document.getElementById('result-title').innerText = "甜甜圈打包專家！";
+    document.getElementById('result-text').innerText = "你成功幫小動物顧客們包裝了正確分量的甜甜圈。分甜甜圈的等值關係也難不倒你了！";
     
     SoundManager.playCheer();
     App.showScreen('screen-result');
-    TTSManager.speak("恭喜通關！你已經成功完成所有馬卡龍的打包試煉！做得非常好！");
+    TTSManager.speak("恭喜通關！你已經成功完成所有甜甜圈的打包試煉！做得非常好！");
   }
 };
 
 // ==========================================================================
-// 9. ⚖️ 關卡三：擴約分鍊金術 (Level 3: Scale & Formula Equivalence)
+// 9. ⚖️ 關卡三：等值變換天平 (Level 3: Scale & Formula Equivalence)
 // ==========================================================================
 const Game3 = {
   currentQuestion: 0,
@@ -1717,7 +2144,7 @@ const Game3 = {
     this.currentQuestion = 0;
     this.scoreStars = 5;
 
-    // 題目池：擴約分鍊金術 (包含乘除以 2, 3, 4, 5 的豐富題目)
+    // 題目池：等值變換天平 (包含乘除以 2, 3, 4, 5 的豐富題目)
     const pool = [
       { left: { num: 1, den: 3 }, right: { num: 3, den: 9 }, op: '×', val: 3 },
       { left: { num: 6, den: 8 }, right: { num: 3, den: 4 }, op: '÷', val: 2 },
@@ -1748,6 +2175,7 @@ const Game3 = {
     document.getElementById('g3-feedback').style.display = "none";
     this.placedNumPotion = null;
     this.placedDenPotion = null;
+    this.selectedPotionVal = null;
 
     // 清空拖放槽
     const slotNum = document.getElementById('g3-slot-num');
@@ -1780,7 +2208,7 @@ const Game3 = {
     const svgContainer = document.getElementById('g3-svg-container');
     svgContainer.innerHTML = "";
     const svg = SVGDrawer.createSVGNode("svg", {
-      width: "100%", height: "100%", viewBox: "0 0 280 280"
+      width: "100%", height: "100%", viewBox: "0 0 280 220"
     });
     svgContainer.appendChild(svg);
     // 畫天平底座 (簡易平衡天平線)
@@ -1800,7 +2228,7 @@ const Game3 = {
     };
   },
 
-  drawScaleBalance(svg, tiltOffset) {
+  drawScaleBalance(svg, tiltOffset, animateAction = false) {
     svg.innerHTML = "";
     
     // 天平中央立柱
@@ -1842,11 +2270,25 @@ const Game3 = {
     svg.appendChild(rightLine2);
     svg.appendChild(rightPlate);
     
-    // 秤盤上的小圓球預覽
-    const ballLeft = SVGDrawer.createSVGNode("circle", { cx: 40, cy: leftY + 35, r: 14, fill: "#FF8A80", stroke: "#8D6E63", "stroke-width": 1.5 });
-    const ballRight = SVGDrawer.createSVGNode("circle", { cx: 240, cy: rightY + 35, r: 14, fill: "#7DD4E8", stroke: "#8D6E63", "stroke-width": 1.5 });
-    svg.appendChild(ballLeft);
-    svg.appendChild(ballRight);
+    // 繪製左右秤盤上的數學表徵模型
+    const modelLY_cont = leftY + 26;
+    const modelRY_cont = rightY + 26;
+    const modelLY_disc = leftY + 28;
+    const modelRY_disc = rightY + 28;
+    
+    if (this.operator === '×') {
+      // 擴分 (切細點)：連續量圓形模型
+      // 左秤盤：初始為原始分數 (leftFrac)，送出正確後播放切細動畫 (multiplier = correctVal)
+      SVGDrawer.drawContinuousModel(svg, 40, modelLY_cont, 22, this.leftFrac.num, this.leftFrac.den, animateAction ? this.correctVal : 1, animateAction);
+      // 右秤盤：目標等值分數 (rightFrac)
+      SVGDrawer.drawContinuousModel(svg, 240, modelRY_cont, 22, this.rightFrac.num, this.rightFrac.den, 1, false);
+    } else {
+      // 約分 (成串包裝)：離散量甜甜圈模型
+      // 左秤盤：初始為無竹籤散裝狀態 (drawSkewers = false)，送出正確後動畫拉出竹籤串聯 (animate = true)
+      SVGDrawer.drawDiscreteModel(svg, 40, modelLY_disc, this.leftFrac.num, this.leftFrac.den, this.correctVal, animateAction, animateAction);
+      // 右秤盤：目標等值分數 (已經成串包裝好的甜甜圈，直接顯示竹籤)
+      SVGDrawer.drawDiscreteModel(svg, 240, modelRY_disc, this.leftFrac.num, this.leftFrac.den, this.correctVal, true, false);
+    }
   },
 
   renderPotions() {
@@ -1892,17 +2334,46 @@ const Game3 = {
         this.fillSlot(slot, val);
       };
 
-      // 點擊可以清空
+      // 點擊可以清空，或放置目前點選選取的藥水 (支援觸控點選)
       slot.onclick = () => {
         SoundManager.playClick();
-        slot.innerText = "?";
-        slot.classList.remove('filled');
-        if (slot.dataset.slot === 'num') this.placedNumPotion = null;
-        if (slot.dataset.slot === 'den') this.placedDenPotion = null;
+        if (this.selectedPotionVal) {
+          // 放置選中的藥水
+          this.fillSlot(slot, this.selectedPotionVal);
+          // 清除選取狀態
+          this.clearSelectedPotion();
+        } else {
+          // 清空槽
+          slot.innerText = "?";
+          slot.classList.remove('filled');
+          if (slot.dataset.slot === 'num') this.placedNumPotion = null;
+          if (slot.dataset.slot === 'den') this.placedDenPotion = null;
+        }
       };
     });
 
     potions.forEach(potion => {
+      // 點選藥水事件 (支援點擊與觸控選取)
+      potion.onclick = (e) => {
+        e.stopPropagation();
+        SoundManager.playClick();
+        
+        // 如果已經選取了別的藥水，先清除它們的選取框
+        document.querySelectorAll('.g3-potion').forEach(p => {
+          if (p !== potion) p.classList.remove('selected-active');
+        });
+        
+        if (this.selectedPotionVal === potion.dataset.val) {
+          // 取消選取
+          this.selectedPotionVal = null;
+          potion.classList.remove('selected-active');
+        } else {
+          // 設為選取
+          this.selectedPotionVal = potion.dataset.val;
+          potion.classList.add('selected-active');
+        }
+      };
+
       potion.addEventListener('dragstart', (e) => {
         potion.classList.add('dragging');
         e.dataTransfer.setData('text/plain', potion.dataset.val);
@@ -1960,6 +2431,11 @@ const Game3 = {
     });
   },
 
+  clearSelectedPotion() {
+    this.selectedPotionVal = null;
+    document.querySelectorAll('.g3-potion').forEach(p => p.classList.remove('selected-active'));
+  },
+
   fillSlot(slot, val) {
     SoundManager.playClick();
     slot.innerText = val;
@@ -2000,7 +2476,7 @@ const Game3 = {
       fEmoji.innerText = "⚖️";
       fMsg.innerHTML = `天平歪掉囉！<br>分子分母要乘/除相同的數！`;
 
-      TTSManager.speak("哎呀，天平歪掉囉！在分數的擴分或約分中，分子和分母必須同時乘以、或者同時除以同一個數，大小才不會變喔！快把天平調整回來吧！");
+      TTSManager.speak("哎呀，天平歪掉囉！在分數的切細點或成串包裝中，分子和分母必須同時乘以、或者同時除以同一個數，大小才不會變喔！快把天平調整回來吧！");
       
       setTimeout(() => {
         feedback.style.display = "none";
@@ -2014,30 +2490,37 @@ const Game3 = {
 
     if (isCorrect) {
       SoundManager.playCorrect();
-      Confetti.start();
-
-      feedback.className = "feedback-overlay correct";
-      feedback.style.display = "flex";
-      fEmoji.innerText = "✨";
       
-      const leftFracStr = TTSManager.fractionToText(this.leftFrac.num, this.leftFrac.den);
-      const rightFracStr = TTSManager.fractionToText(this.rightFrac.num, this.rightFrac.den);
-      const leftFracHTML = `<span class="math-fraction"><span class="num">${this.leftFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.leftFrac.den}</span></span>`;
-      const rightFracHTML = `<span class="math-fraction"><span class="num">${this.rightFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.rightFrac.den}</span></span>`;
-      const opWord = this.operator === '×' ? "乘以" : "除以";
+      // 觸發天平左側的等值變換動畫（切細點 / 成串包裝）
+      const svg = document.getElementById('g3-svg-container').querySelector('svg');
+      this.drawScaleBalance(svg, 0, true); 
 
-      fMsg.innerHTML = `鍊金成功！<br>${leftFracHTML} 等於 ${rightFracHTML}`;
-      
-      TTSManager.speak(`鍊金成功！${leftFracStr}的分子分母同時${opWord}${this.correctVal}，就得到了等值分數${rightFracStr}。天平非常平衡！`);
-
+      // 延遲 1 秒顯示反饋與碎紙花，讓動畫先行播放完畢
       setTimeout(() => {
-        this.currentQuestion++;
-        if (this.currentQuestion >= this.totalQuestions) {
-          this.endGame();
-        } else {
-          this.initQuestion();
-        }
-      }, 4000);
+        Confetti.start();
+        feedback.className = "feedback-overlay correct";
+        feedback.style.display = "flex";
+        fEmoji.innerText = "✨";
+        
+        const leftFracStr = TTSManager.fractionToText(this.leftFrac.num, this.leftFrac.den);
+        const rightFracStr = TTSManager.fractionToText(this.rightFrac.num, this.rightFrac.den);
+        const leftFracHTML = `<span class="math-fraction"><span class="num">${this.leftFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.leftFrac.den}</span></span>`;
+        const rightFracHTML = `<span class="math-fraction"><span class="num">${this.rightFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.rightFrac.den}</span></span>`;
+        const opWord = this.operator === '×' ? "乘以" : "除以";
+
+        fMsg.innerHTML = `等值變換成功！<br>${leftFracHTML} 等於 ${rightFracHTML}`;
+        
+        TTSManager.speak(`等值變換成功！${leftFracStr}的分子分母同時${opWord}${this.correctVal}，就得到了等值分數${rightFracStr}。天平非常平衡！`);
+
+        setTimeout(() => {
+          this.currentQuestion++;
+          if (this.currentQuestion >= this.totalQuestions) {
+            this.endGame();
+          } else {
+            this.initQuestion();
+          }
+        }, 4000);
+      }, 1000);
 
     } else {
       SoundManager.playWrong();
@@ -2073,7 +2556,7 @@ const Game3 = {
     document.getElementById('result-stars').innerText = "⭐".repeat(this.scoreStars) + "☆".repeat(5 - this.scoreStars);
     document.getElementById('result-medal').innerText = "⚖️";
     document.getElementById('result-title').innerText = "等值鍊金術士！";
-    document.getElementById('result-text').innerText = "太完美了！你完全掌握了擴分與約分的鍊金法則，知道擴分約分時分子分母要同時乘或除以同一個數。你是最厲害的鍊金大師！";
+    document.getElementById('result-text').innerText = "太完美了！你完全掌握了切細點與成串包裝的等值法則，知道切細或包裝時分子分母要同時乘或除以同一個數。你是最厲害的魔法大師！";
     
     SoundManager.playCheer();
     App.showScreen('screen-result');
@@ -2538,7 +3021,7 @@ const PvPGame = {
           ]
         }
       ],
-      // 題型 2: 擴分填空 (問號求值)
+      // 題型 2: 切細點填空 (問號求值)
       [
         {
           type: 'formula-fill',
@@ -2728,7 +3211,7 @@ const PvPGame = {
           ]
         }
       ],
-      // 題型 4: 約分填空 (分母問號)
+      // 題型 4: 成串包裝填空 (分母問號)
       [
         {
           type: 'formula-fill',

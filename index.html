@@ -52,7 +52,7 @@
           <div class="mode-card" id="card-mode-single">
             <div class="mode-card-icon bg-pink">🍳</div>
             <h3>單人自主學習</h3>
-            <p>循序漸進認識等值分數、擴分與約分，收集星星！</p>
+            <p>循序漸進認識等值分數、切細點與成串包裝，收集星星！</p>
             <button class="play-btn pink-btn">開始探索</button>
           </div>
 
@@ -106,10 +106,10 @@
 
         <!-- Level 2 Button -->
         <div class="menu-item mode-single-only" id="menu-btn-game2">
-          <div class="menu-item-icon">🍬</div>
+          <div class="menu-item-icon">🍩</div>
           <div class="menu-item-info">
-            <h4>關卡二：魔法糖果包裝員</h4>
-            <p>挑戰把一整盒糖果分組包裝，做出指定的等值分數！</p>
+            <h4>關卡二：魔法甜甜圈包裝員</h4>
+            <p>挑戰把一整盒甜甜圈分組包裝，做出指定的等值分數！</p>
           </div>
         </div>
 
@@ -117,7 +117,7 @@
         <div class="menu-item mode-single-only" id="menu-btn-game3">
           <div class="menu-item-icon">⚖️</div>
           <div class="menu-item-info">
-            <h4>關卡三：擴約分鍊金術</h4>
+            <h4>關卡三：等值變換天平</h4>
             <p>調配神奇的乘除法藥水，讓分子分母同時變化！</p>
           </div>
         </div>
@@ -159,8 +159,8 @@
         <div class="control-panel panel-card">
           <!-- Continuous vs Discrete Tabs -->
           <div class="explore-mode-tabs">
-            <button id="btn-tab-continuous" class="tab-btn active">🍰 連續量 (切蛋糕)</button>
-            <button id="btn-tab-discrete" class="tab-btn">🍬 離散量 (分糖果)</button>
+            <button id="btn-tab-continuous" class="tab-btn active">🍰 切蛋糕</button>
+            <button id="btn-tab-discrete" class="tab-btn">🍩 分甜甜圈</button>
           </div>
 
           <!-- Continuous Controls -->
@@ -192,10 +192,10 @@
 
           <!-- Discrete Controls -->
           <div id="explorer-discrete-controls" class="selector-group style-hide" style="display:none;">
-            <span class="label-title">1. 選擇一盒糖果總顆數：</span>
+            <span class="label-title">1. 選擇一盒甜甜圈總顆數：</span>
             <div class="discrete-candy-options">
-              <button id="btn-candy-12" class="candy-opt-btn active">12 顆裝</button>
-              <button id="btn-candy-24" class="candy-opt-btn">24 顆裝</button>
+              <button id="btn-candy-12" class="candy-opt-btn active">12 個裝</button>
+              <button id="btn-candy-24" class="candy-opt-btn">24 個裝</button>
             </div>
 
             <span class="label-title">2. 調整平分組數（分母）：</span>
@@ -212,10 +212,10 @@
           </div>
 
           <!-- Equivalent tools -->
-          <span class="label-title">4. 探索等值分數（擴分與約分）：</span>
+          <span class="label-title">4. 探索等值分數（切細點與成串包裝）：</span>
           <div class="explorer-action-group">
-            <button id="btn-explorer-multiply" class="action-bubble-btn" title="分子分母同時乘以 2">🧪 擴分 (×2)</button>
-            <button id="btn-explorer-divide" class="action-bubble-btn" title="分子分母同時除以 2">🧪 約分 (÷2)</button>
+            <button id="btn-explorer-multiply" class="action-bubble-btn" title="分子分母同時乘以 2">🧪 切細點 (×2)</button>
+            <button id="btn-explorer-divide" class="action-bubble-btn" title="分子分母同時除以 2">🧪 成串包裝 (÷2)</button>
           </div>
 
           <!-- Explanation box -->
@@ -226,8 +226,22 @@
 
         <!-- Right Side: SVG Visualization -->
         <div class="visual-panel panel-card">
-          <div class="svg-container" id="explorer-svg-container">
-            <!-- Dynamic SVG will be rendered here -->
+          <!-- Split side-by-side SVG wrapper -->
+          <div class="explorer-svg-wrapper" style="display: flex; gap: 20px; justify-content: center; width: 100%; flex-wrap: wrap;">
+            <!-- Left Card: Current Fraction -->
+            <div class="explorer-svg-box" style="display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 200px; max-width: 280px;">
+              <span class="label-title" style="margin-bottom: 8px; font-size: 1.1rem; color: #5D4037; font-weight: bold;">原本的分數</span>
+              <div class="svg-container" id="explorer-svg-left" style="width: 100%; height: 260px; display: flex; align-items: center; justify-content: center;">
+                <!-- Left SVG -->
+              </div>
+            </div>
+            <!-- Right Card: Equivalent Fraction -->
+            <div class="explorer-svg-box" id="explorer-svg-right-box" style="display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 200px; max-width: 280px;">
+              <span class="label-title" id="explorer-eq-title" style="margin-bottom: 8px; font-size: 1.1rem; color: #00796B; font-weight: bold;">變換後的等值分數</span>
+              <div class="svg-container" id="explorer-svg-right" style="width: 100%; height: 260px; display: flex; align-items: center; justify-content: center;">
+                <!-- Right SVG -->
+              </div>
+            </div>
           </div>
           
           <div class="fraction-display-row">
@@ -315,18 +329,18 @@
           </div>
 
           <div class="game-status-bar">
-            <div class="game-title-info">🍬 關卡二：魔法糖果包裝員</div>
+            <div class="game-title-info">🍩 關卡二：魔法甜甜圈包裝員</div>
             <div class="game-score-stars" id="g2-stars">⭐⭐⭐⭐⭐</div>
           </div>
 
           <div class="question-text-box" id="g2-question-text">
-            顧客想要買分量為 1/2 盒的馬卡龍。請幫忙進行打包！
+            顧客想要買分量為 1/2 盒的甜甜圈。請幫忙進行打包！
           </div>
 
           <div class="g2-layout">
             <!-- Grouping selection buttons -->
             <div class="g2-control-panel">
-              <span class="label-title">第一步：要把這盒糖果平分成幾組？</span>
+              <span class="label-title">第一步：要把這盒甜甜圈平分成幾組？</span>
               <div class="g2-divider-select" id="g2-dividers">
                 <!-- Buttons dynamically loaded -->
               </div>
@@ -366,7 +380,7 @@
           </div>
 
           <div class="game-status-bar">
-            <div class="game-title-info">⚖️ 關卡三：擴約分鍊金術</div>
+            <div class="game-title-info">⚖️ 關卡三：等值變換天平</div>
             <div class="game-score-stars" id="g3-stars">⭐⭐⭐⭐⭐</div>
           </div>
 
@@ -412,7 +426,7 @@
             </div>
 
             <!-- Visualization of Left/Right Balance -->
-            <div class="svg-container" id="g3-svg-container" style="height: 180px; max-width: 180px;">
+            <div class="svg-container" id="g3-svg-container" style="aspect-ratio: 280 / 220; width: 100%; max-width: 380px; height: auto; margin: 10px auto;">
               <!-- Mini visual for scale balance -->
             </div>
 
@@ -585,9 +599,9 @@
             <h5>學習探索區：等值分數顯示器</h5>
           </div>
           <div class="guide-detail">
-            <p><strong>🍰 蛋糕連續量：</strong>一整個蛋糕切得越細（分母越大），著色的每一片就越小，但如果拿走對應的份數（分子），總大小還是一樣大喔！</p>
-            <p><strong>🍬 糖果離散量：</strong>一盒糖果有很多顆，要看它被<strong>「平分成幾組」</strong>（分母）而不是只看單顆顆數。例如：12 顆糖果平分成 3 組（每組 4 顆），拿走其中 1 組就是 <div class="math-fraction inline-frac"><span class="num">1</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 盒（共 4 顆）。</p>
-            <p class="tip-bubble">💡 <strong>探索秘訣：</strong>拉動拉桿切割蛋糕，並點擊 <strong>「擴分 (×2)」</strong> 或 <strong>「約分 (÷2)」</strong>，觀察分數數值與點心分量如何變化！</p>
+            <p><strong>🍰 切蛋糕：</strong>一整個蛋糕切得越細，著色的每一片就越小，但如果拿走對應的份數，總大小還是一樣大喔！</p>
+            <p><strong>🍩 分甜甜圈：</strong>一盒甜甜圈有很多個，要看它被<strong>「平分成幾組」</strong>（分母）而不是只看單個個數。例如：12 個甜甜圈平分成 3 組（每組 4 個），拿走其中 1 組就是 <div class="math-fraction inline-frac"><span class="num">1</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 盒（共 4 個）。</p>
+            <p class="tip-bubble">💡 <strong>探索秘訣：</strong>拉動拉桿切割蛋糕，並點擊 <strong>「切細點 (×2)」</strong> 或 <strong>「成串包裝 (÷2)」</strong>，觀察分數數值與點心分量如何變化！</p>
           </div>
         </section>
 
@@ -604,30 +618,30 @@
 
         <section class="guide-section">
           <div class="guide-subtitle">
-            <span class="guide-icon">🍬</span>
-            <h5>關卡二：魔法糖果包裝員</h5>
+            <span class="guide-icon">🍩</span>
+            <h5>關卡二：魔法甜甜圈包裝員</h5>
           </div>
           <div class="guide-detail">
-            <p><strong>🍬 離散量分組包裝：</strong>如果顧客想要 <div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 盒馬卡龍，我們有不同的平分包裝法：</p>
+            <p><strong>🍩 甜甜圈分組包裝：</strong>如果顧客想要 <div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 盒甜甜圈，我們有不同的平分包裝法：</p>
             <ul>
-              <li>平分成 3 組（分母為 3），拿走其中 2 組（一盒 12 顆的話，每組 4 顆，拿走 2 組共 8 顆）。</li>
-              <li>平分成 6 組（分母為 6），拿走其中 4 組（每組 2 顆，拿走 4 組共 8 顆）。</li>
-              <li>因為 <div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> = <div class="math-fraction inline-frac"><span class="num">4</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">6</span></div>，代表的糖果盒數與顆數完全相同！</li>
+              <li>平分成 3 組（分母為 3），拿走其中 2 組（一盒 12 個的話，每組 4 個，拿走 2 組共 8 個）。</li>
+              <li>平分成 6 組（分母為 6），拿走其中 4 組（每組 2 個，拿走 4 組共 8 個）。</li>
+              <li>因為 <div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> = <div class="math-fraction inline-frac"><span class="num">4</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">6</span></div>，代表的甜甜圈盒數與個數完全相同！</li>
             </ul>
-            <p class="tip-bubble">💡 <strong>玩法秘訣：</strong>先按按鈕決定要把這盒糖果「平分成幾組」；再點選虛線大框來拿走指定組數，完成包裝後出貨！</p>
+            <p class="tip-bubble">💡 <strong>玩法秘訣：</strong>先按按鈕決定要把這盒甜甜圈「平分成幾組」，此時畫面上會動態伸出竹籤將甜甜圈串起來；再點選被串好的組別來選取指定分量，完成包裝後出貨！</p>
           </div>
         </section>
 
         <section class="guide-section">
           <div class="guide-subtitle">
             <span class="guide-icon">⚖️</span>
-            <h5>關卡三：擴約分鍊金術</h5>
+            <h5>關卡三：等值變換天平</h5>
           </div>
           <div class="guide-detail">
-            <p><strong>🧪 擴約分與乘除守恆法則：</strong></p>
+            <p><strong>🧪 切細與包裝的等值規律：</strong></p>
             <ul>
-              <li><strong>擴分魔法：</strong>分子和分母必須<strong>同時乘以相同的數</strong>（大於 1），分數大小才不變。</li>
-              <li><strong>約分魔法：</strong>分子和分母必須<strong>同時除以相同的數</strong>（公因數），分數大小才不變。</li>
+              <li><strong>切細點魔法：</strong>分子和分母必須<strong>同時乘以相同的數</strong>（大於 1），分數大小才不變。</li>
+              <li><strong>成串包裝魔法：</strong>分子和分母必須<strong>同時除以相同的數</strong>，分數大小才不變。</li>
               <li>若分子、分母乘或除的數不同（例如分子乘 2、分母乘 3），比例就被破壞，魔法天平就會<strong>失去平衡而傾斜</strong>喔！</li>
             </ul>
             <p class="tip-bubble">💡 <strong>玩法秘訣：</strong>將乘除法藥水拖曳至分子與分母的槽中，只有雙邊都放入相同且正確的藥水，天平才會平衡並成功鍊金！</p>
@@ -652,7 +666,7 @@
             <h5>雙人烘焙對決 (搶答模式)</h5>
           </div>
           <div class="guide-detail">
-            <p><strong>🧁 極速概念整合：</strong>考驗等值分數配對、擴約分算式填空、分數與小數互換的敏捷度。先答對得 10 分，答錯扣 5 分！</p>
+            <p><strong>🧁 極速概念整合：</strong>考驗等值分數配對、等值變換算式填空、分數與小數互換的敏捷度。先答對得 10 分，答錯扣 5 分！</p>
             <p class="tip-bubble">💡 <strong>對決秘訣：</strong>點擊甜點按鈕（🧁 10題、🍩 20題、🍪 30題）自訂題數。雙方的選項順序會隨機打亂，專注看清自己盤中的分數吧！</p>
           </div>
         </section>

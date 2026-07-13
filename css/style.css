@@ -1152,6 +1152,11 @@ body {
 .g3-potion:active {
   cursor: grabbing;
 }
+.g3-potion.selected-active {
+  border-color: var(--color-accent-pink) !important;
+  box-shadow: 0 0 14px rgba(255, 138, 128, 0.6) !important;
+  transform: translateY(-6px) scale(1.05);
+}
 .g3-potion-bottle {
   font-size: 2.2rem;
   animation: floatCat 3s infinite ease-in-out;
@@ -1825,6 +1830,24 @@ body {
   vertical-align: middle;
   margin: 0 4px !important;
   transform: translateY(-2px);
+}
+
+@keyframes donut-pop {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.22);
+  }
+  60% {
+    transform: scale(0.92);
+  }
+  80% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 

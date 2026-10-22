@@ -2936,6 +2936,11 @@ const PvPGame = {
   totalQuestions: 30,
   scoreP1: 0,
   scoreP2: 0,
+  comboP1: 0,
+  comboP2: 0,
+  maxComboP1: 0,
+  maxComboP2: 0,
+  showKeyHints: true,
   
   options: [],
   correctOption: null,
@@ -2952,10 +2957,28 @@ const PvPGame = {
     this.currentQuestion = 0;
     this.scoreP1 = 0;
     this.scoreP2 = 0;
+    this.comboP1 = 0;
+    this.comboP2 = 0;
+    this.maxComboP1 = 0;
+    this.maxComboP2 = 0;
     this.isBattleThinkingPhase = false;
     
     document.getElementById('pvp-score-p1').innerText = "得分: 0";
     document.getElementById('pvp-score-p2').innerText = "得分: 0";
+    this.updateComboUI();
+
+    const toggleKeysBtn = document.getElementById('btn-pvp-toggle-keys');
+    if (toggleKeysBtn) {
+      toggleKeysBtn.onclick = () => {
+        this.showKeyHints = !this.showKeyHints;
+        toggleKeysBtn.innerText = this.showKeyHints ? "⌨️ 鍵盤提示: 開" : "⌨️ 鍵盤提示: 關";
+        const arena = document.getElementById('screen-pvp');
+        if (arena) {
+          arena.classList.toggle('hide-keys', !this.showKeyHints);
+        }
+        SoundManager.playClick();
+      };
+    }
     
     App.showScreen('screen-pvp');
     
@@ -3614,6 +3637,12 @@ const PvPGame = {
     document.getElementById('pvp-p1-feedback').style.display = "none";
     document.getElementById('pvp-p2-feedback').style.display = "none";
 
+    // 更新局勢題號進度徽章
+    const roundBadge = document.getElementById('battle-round-badge');
+    if (roundBadge) {
+      roundBadge.textContent = `第 ${this.currentQuestion + 1} / ${this.totalQuestions} 題`;
+    }
+
     const q = this.questions[this.currentQuestion];
     this.correctOption = q.correct; // 快取當前正確選項以供搶答判定
 
@@ -3650,6 +3679,13 @@ const PvPGame = {
     opts.forEach((opt, idx) => {
       const btn = document.createElement('button');
       btn.className = "pvp-opt-btn";
+
+      // 注入鍵盤快捷鍵角標
+      const keyBadge = document.createElement('span');
+      keyBadge.className = 'key-badge';
+      const keyLabels = player === 'p1' ? ['1', '2', '3', '4'] : ['7', '8', '9', '0'];
+      keyBadge.textContent = keyLabels[idx];
+      btn.appendChild(keyBadge);
       
       const frac = document.createElement('div');
       frac.className = "pvp-opt-fraction";
@@ -3685,16 +3721,26 @@ const PvPGame = {
       
       if (player === 'p1') {
         this.scoreP1 += 10;
+        this.comboP1++;
+        this.comboP2 = 0;
+        this.maxComboP1 = Math.max(this.maxComboP1, this.comboP1);
         document.getElementById('pvp-score-p1').innerText = `得分: ${this.scoreP1}`;
       } else {
         this.scoreP2 += 10;
+        this.comboP2++;
+        this.comboP1 = 0;
+        this.maxComboP2 = Math.max(this.maxComboP2, this.comboP2);
         document.getElementById('pvp-score-p2').innerText = `得分: ${this.scoreP2}`;
       }
+      this.updateComboUI();
 
       // 該玩家亮綠燈
       feedbackOverlay.className = "pvp-feedback-overlay correct";
       feedbackOverlay.style.display = "flex";
-      feedbackOverlay.innerHTML = "<span class='feedback-emoji' style='font-size:3rem;'>🎯 得 10 分！</span>";
+      const comboText = (player === 'p1' ? this.comboP1 : this.comboP2) >= 2 
+        ? ` (🔥 ${(player === 'p1' ? this.comboP1 : this.comboP2)} 連勝!)` 
+        : '';
+      feedbackOverlay.innerHTML = `<span class='feedback-emoji' style='font-size:2.8rem;'>🎯 得 10 分！${comboText}</span>`;
 
       // 另一方玩家顯示「被搶先囉」
       const otherPlayer = player === 'p1' ? 'p2' : 'p1';
@@ -3714,14 +3760,17 @@ const PvPGame = {
 
     } else {
       SoundManager.playWrong();
-      // 答錯扣 5 分，按鈕禁用
+      // 答錯扣 5 分，中斷連勝，按鈕禁用
       if (player === 'p1') {
         this.scoreP1 = Math.max(0, this.scoreP1 - 5);
+        this.comboP1 = 0;
         document.getElementById('pvp-score-p1').innerText = `得分: ${this.scoreP1}`;
       } else {
         this.scoreP2 = Math.max(0, this.scoreP2 - 5);
+        this.comboP2 = 0;
         document.getElementById('pvp-score-p2').innerText = `得分: ${this.scoreP2}`;
       }
+      this.updateComboUI();
 
       btnElement.disabled = true;
       btnElement.style.opacity = "0.3";
@@ -3733,6 +3782,27 @@ const PvPGame = {
       setTimeout(() => {
         feedbackOverlay.style.display = "none";
       }, 1500);
+    }
+  },
+
+  updateComboUI() {
+    const c1 = document.getElementById('pvp-combo-p1');
+    const c2 = document.getElementById('pvp-combo-p2');
+    if (c1) {
+      if (this.comboP1 >= 2) {
+        c1.classList.remove('hidden');
+        c1.textContent = `🔥 ${this.comboP1} 連勝!`;
+      } else {
+        c1.classList.add('hidden');
+      }
+    }
+    if (c2) {
+      if (this.comboP2 >= 2) {
+        c2.classList.remove('hidden');
+        c2.textContent = `🔥 ${this.comboP2} 連勝!`;
+      } else {
+        c2.classList.add('hidden');
+      }
     }
   },
 
@@ -3759,8 +3829,8 @@ const PvPGame = {
 
     document.getElementById('result-title').innerText = "對戰結果";
     document.getElementById('result-text').innerHTML = `
-      <strong>貓咪小廚神 (P1) 得分：</strong> ${this.scoreP1} 分<br>
-      <strong>兔子小廚神 (P2) 得分：</strong> ${this.scoreP2} 分<br><br>
+      <strong>🐱 貓咪小廚神 (P1)：</strong> ${this.scoreP1} 分 ${this.maxComboP1 >= 2 ? `(最高連對 ${this.maxComboP1} 題 🔥)` : ''}<br>
+      <strong>🐰 兔子小廚神 (P2)：</strong> ${this.scoreP2} 分 ${this.maxComboP2 >= 2 ? `(最高連對 ${this.maxComboP2} 題 🔥)` : ''}<br><br>
       ${winMsg}
     `;
 

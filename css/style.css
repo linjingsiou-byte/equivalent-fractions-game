@@ -1936,5 +1936,76 @@ body {
   animation: shakeWarn 0.4s ease-in-out !important;
 }
 
+/* ==================== 對戰題號進度徽章 ==================== */
+.battle-round-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FFE082, #FFB74D);
+  color: #5D4037;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 800;
+  border: 1.5px solid #FFA726;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  white-space: nowrap;
+}
+
+/* ==================== 連勝激勵火苗 (Combo Badge) ==================== */
+.combo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #FF6F00, #FF3D00);
+  color: #FFFFFF;
+  padding: 3px 12px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 800;
+  animation: comboPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 2px 8px rgba(255, 61, 0, 0.35);
+  margin-left: 8px;
+}
+
+.combo-badge.hidden {
+  display: none !important;
+}
+
+@keyframes comboPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ==================== 鍵盤操作角標 (Key Badge) ==================== */
+.pvp-opt-btn {
+  position: relative !important;
+}
+
+.key-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: #FFF8E1;
+  color: #8D4F00;
+  border: 1.5px solid #FFA000;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.hide-keys .key-badge {
+  display: none !important;
+}
+
+
 
 

@@ -1850,4 +1850,91 @@ body {
   }
 }
 
+/* ==========================================================================
+   14. 對戰讀題思考與防偷跑標準化模組 (Fraction Battle Optimizer - Mode B)
+   ========================================================================== */
+.battle-status-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 24px;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(92, 61, 46, 0.12);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text, #4a3728);
+  overflow: hidden;
+  margin: 10px auto 16px auto;
+  width: 90%;
+  max-width: 650px;
+  border: 2px solid rgba(224, 138, 91, 0.4);
+  transition: all 0.3s ease;
+}
+
+.battle-status-bar .status-icon {
+  font-size: 1.35rem;
+}
+
+.battle-status-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #E0E0E0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.battle-status-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ff9f43, #ee5253);
+  transition: width 0.1s linear;
+}
+
+/* 開搶狀態（金色高亮霓虹光暈） */
+.battle-status-bar.ready {
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  border-color: #f1c40f;
+  box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+  color: #b7791f;
+}
+
+.battle-status-bar.ready .battle-status-progress {
+  display: none;
+}
+
+/* ==================== 冷卻與鎖定樣式 ==================== */
+.pvp-player-panel.cooling {
+  opacity: 0.65;
+  filter: grayscale(0.4);
+}
+
+.pvp-player-panel.cooling .pvp-opt-btn {
+  cursor: not-allowed !important;
+}
+
+.pvp-player-panel.cooling .pvp-opt-btn:hover {
+  transform: none !important;
+  border-color: var(--color-brown-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* ==================== 偷按防呆劇烈晃動動畫 ==================== */
+@keyframes shakeWarn {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px) rotate(-1deg); }
+  40% { transform: translateX(8px) rotate(1deg); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.shake-warn {
+  animation: shakeWarn 0.4s ease-in-out !important;
+}
+
+
 

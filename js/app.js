@@ -106,6 +106,45 @@ const SoundManager = {
         osc.stop(now + 0.7);
       });
     } catch (e) {}
+  },
+
+  // 清脆開搶「叮咚」三連音 (Buzzer Open)
+  playBuzzerOpen() {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 大三和弦
+      notes.forEach((freq, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        const startTime = this.ctx.currentTime + i * 0.08;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.2, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+        osc.start(startTime);
+        osc.stop(startTime + 0.35);
+      });
+    } catch (e) {}
+  },
+
+  // 偷按阻擋輕音 (Soft Click / Blip)
+  playSoftClick() {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+      osc.start(this.ctx.currentTime);
+      osc.stop(this.ctx.currentTime + 0.08);
+    } catch (e) {}
   }
 };
 
@@ -2902,12 +2941,18 @@ const PvPGame = {
   correctOption: null,
   questionActive: false,
   questions: [],
+  isBattleThinkingPhase: false,
+  battleThinkingTimer: null,
+  keyListenerBound: false,
 
   start(rounds = 30) {
+    this.clearBattleThinkingTimer();
+    this.bindKeyboard();
     this.totalQuestions = rounds;
     this.currentQuestion = 0;
     this.scoreP1 = 0;
     this.scoreP2 = 0;
+    this.isBattleThinkingPhase = false;
     
     document.getElementById('pvp-score-p1').innerText = "得分: 0";
     document.getElementById('pvp-score-p2').innerText = "得分: 0";
@@ -2915,6 +2960,11 @@ const PvPGame = {
     App.showScreen('screen-pvp');
     
     document.getElementById('btn-pvp-quit').onclick = () => {
+      this.clearBattleThinkingTimer();
+      const p1Panel = document.getElementById('pvp-panel-p1');
+      const p2Panel = document.getElementById('pvp-panel-p2');
+      if (p1Panel) p1Panel.classList.remove('cooling', 'shake-warn');
+      if (p2Panel) p2Panel.classList.remove('cooling', 'shake-warn');
       SoundManager.playClick();
       App.showScreen('screen-welcome');
       window.speechSynthesis.cancel();
@@ -3410,17 +3460,164 @@ const PvPGame = {
     setTimeout(() => this.initQuestion(), 2000);
   },
 
+  clearBattleThinkingTimer() {
+    if (this.battleThinkingTimer) {
+      clearInterval(this.battleThinkingTimer);
+      this.battleThinkingTimer = null;
+    }
+  },
+
+  startBattleThinkingCountdown(durationSec = 3.0) {
+    this.clearBattleThinkingTimer();
+    this.isBattleThinkingPhase = true;
+    this.questionActive = false; // 思考期尚未開放作答搶答
+
+    // 雙方面板進入冷卻狀態
+    const p1Panel = document.getElementById('pvp-panel-p1');
+    const p2Panel = document.getElementById('pvp-panel-p2');
+    if (p1Panel) p1Panel.classList.add('cooling');
+    if (p2Panel) p2Panel.classList.add('cooling');
+
+    const statusBar = document.getElementById('battle-status-bar');
+    const statusIcon = document.getElementById('battle-status-icon');
+    const statusText = document.getElementById('battle-status-text');
+    const progressFill = document.getElementById('battle-status-progress-fill');
+
+    if (statusBar) {
+      statusBar.classList.remove('ready');
+      if (statusIcon) statusIcon.textContent = '⏳';
+      if (statusText) {
+        statusText.innerHTML = `仔細看題思考中... <strong id="battle-status-timer">${durationSec.toFixed(1)}</strong> 秒後開放作答！`;
+      }
+      if (progressFill) {
+        progressFill.style.transition = 'none';
+        progressFill.style.width = '0%';
+      }
+    }
+
+    const totalMs = durationSec * 1000;
+    const intervalMs = 100;
+    let elapsedMs = 0;
+
+    this.battleThinkingTimer = setInterval(() => {
+      elapsedMs += intervalMs;
+      const remainingSec = Math.max(0, (totalMs - elapsedMs) / 1000);
+      const percent = Math.min(100, (elapsedMs / totalMs) * 100);
+
+      const timerEl = document.getElementById('battle-status-timer');
+      if (timerEl) {
+        timerEl.textContent = remainingSec.toFixed(1);
+      }
+      if (progressFill) {
+        progressFill.style.transition = 'width 0.1s linear';
+        progressFill.style.width = `${percent}%`;
+      }
+
+      if (elapsedMs >= totalMs) {
+        this.clearBattleThinkingTimer();
+        this.onBattleThinkingComplete();
+      }
+    }, intervalMs);
+  },
+
+  onBattleThinkingComplete() {
+    this.clearBattleThinkingTimer();
+    this.isBattleThinkingPhase = false;
+    this.questionActive = true; // 正式開放搶答！
+
+    SoundManager.playBuzzerOpen();
+
+    const p1Panel = document.getElementById('pvp-panel-p1');
+    const p2Panel = document.getElementById('pvp-panel-p2');
+    if (p1Panel) p1Panel.classList.remove('cooling');
+    if (p2Panel) p2Panel.classList.remove('cooling');
+
+    const statusBar = document.getElementById('battle-status-bar');
+    const statusIcon = document.getElementById('battle-status-icon');
+    const statusText = document.getElementById('battle-status-text');
+
+    if (statusBar) {
+      statusBar.className = 'battle-status-bar ready';
+      if (statusIcon) statusIcon.textContent = '⚡';
+      if (statusText) {
+        statusText.innerHTML = '⚡ <strong>競速開始！</strong>快找出等值分數搶先按下！';
+      }
+    }
+  },
+
+  triggerBattleSideShake(player) {
+    SoundManager.playSoftClick();
+
+    const panel = document.getElementById(`pvp-panel-${player}`);
+    if (panel) {
+      panel.classList.remove('shake-warn');
+      void panel.offsetWidth; // Force reflow
+      panel.classList.add('shake-warn');
+    }
+
+    const feedbackOverlay = document.getElementById(`pvp-${player}-feedback`);
+    if (feedbackOverlay) {
+      feedbackOverlay.className = "pvp-feedback-overlay wrong";
+      feedbackOverlay.style.display = "flex";
+      feedbackOverlay.innerHTML = "<span class='feedback-emoji' style='font-size:2rem;'>⏳ 先思考！倒數後開放作答</span>";
+      setTimeout(() => {
+        if (this.isBattleThinkingPhase) {
+          feedbackOverlay.style.display = "none";
+        }
+      }, 900);
+    }
+  },
+
+  bindKeyboard() {
+    if (this.keyListenerBound) return;
+    this.keyListenerBound = true;
+
+    window.addEventListener('keydown', (e) => {
+      if (App.currentScreen !== 'screen-pvp') return;
+
+      // P1: 1, 2, 3, 4 或 Q, W, A, S
+      let p1Index = -1;
+      if (e.key === '1' || e.code === 'KeyQ') p1Index = 0;
+      else if (e.key === '2' || e.code === 'KeyW') p1Index = 1;
+      else if (e.key === '3' || e.code === 'KeyA') p1Index = 2;
+      else if (e.key === '4' || e.code === 'KeyS') p1Index = 3;
+
+      if (p1Index >= 0) {
+        const p1Btns = document.querySelectorAll('#pvp-options-p1 .pvp-opt-btn');
+        if (p1Btns[p1Index] && !p1Btns[p1Index].disabled) {
+          p1Btns[p1Index].click();
+        }
+        return;
+      }
+
+      // P2: 7, 8, 9, 0 或 U, I, J, K 或小鍵盤 7, 8, 4, 5
+      let p2Index = -1;
+      if (e.key === '7' || e.code === 'KeyU' || e.code === 'Numpad7') p2Index = 0;
+      else if (e.key === '8' || e.code === 'KeyI' || e.code === 'Numpad8') p2Index = 1;
+      else if (e.key === '9' || e.code === 'KeyJ' || e.code === 'Numpad4') p2Index = 2;
+      else if (e.key === '0' || e.code === 'KeyK' || e.code === 'Numpad5') p2Index = 3;
+
+      if (p2Index >= 0) {
+        const p2Btns = document.querySelectorAll('#pvp-options-p2 .pvp-opt-btn');
+        if (p2Btns[p2Index] && !p2Btns[p2Index].disabled) {
+          p2Btns[p2Index].click();
+        }
+        return;
+      }
+    });
+  },
+
   initQuestion() {
     if (App.currentScreen !== 'screen-pvp') return; // 防呆
+    this.clearBattleThinkingTimer();
 
-    this.questionActive = true;
     document.getElementById('pvp-p1-feedback').style.display = "none";
     document.getElementById('pvp-p2-feedback').style.display = "none";
 
     const q = this.questions[this.currentQuestion];
     this.correctOption = q.correct; // 快取當前正確選項以供搶答判定
 
-    // 渲染對戰標題文字
+    // 渲染對戰標題文字 (題目 100% 完整開源展示)
     const header = document.querySelector('.pvp-header-banner');
     header.innerHTML = q.headerHTML(q.targetFrac);
 
@@ -3430,12 +3627,15 @@ const PvPGame = {
 
     // 報讀題目 (動態加入題號)
     const qNumStr = TTSManager.numberToChinese(this.currentQuestion + 1);
-    const fullSpeakText = `第${qNumStr}題，請搶答。${q.speakText}`;
+    const fullSpeakText = `第${qNumStr}題，請看題思考。${q.speakText}`;
     TTSManager.speak(fullSpeakText);
 
     // 渲染 P1 與 P2 選項按鈕
     this.renderPlayerOptions('p1');
     this.renderPlayerOptions('p2');
+
+    // 啟動 3.0 秒讀題思考緩衝期倒數 (Golden Standard)
+    this.startBattleThinkingCountdown(3.0);
   },
 
   renderPlayerOptions(player) {
@@ -3462,6 +3662,10 @@ const PvPGame = {
       btn.appendChild(frac);
 
       btn.onclick = () => {
+        if (this.isBattleThinkingPhase) {
+          this.triggerBattleSideShake(player);
+          return;
+        }
         if (!this.questionActive) return;
         this.handleAnswer(player, opt, btn);
       };
@@ -3475,6 +3679,7 @@ const PvPGame = {
     const feedbackOverlay = document.getElementById(`pvp-${player}-feedback`);
 
     if (isCorrect) {
+      this.clearBattleThinkingTimer();
       this.questionActive = false; // 該題搶答結束
       SoundManager.playCorrect();
       
@@ -3532,6 +3737,12 @@ const PvPGame = {
   },
 
   endGame() {
+    this.clearBattleThinkingTimer();
+    const p1Panel = document.getElementById('pvp-panel-p1');
+    const p2Panel = document.getElementById('pvp-panel-p2');
+    if (p1Panel) p1Panel.classList.remove('cooling', 'shake-warn');
+    if (p2Panel) p2Panel.classList.remove('cooling', 'shake-warn');
+    
     App.lastFinishedGame = 0; // PVP
     
     document.getElementById('result-stars').innerText = "";

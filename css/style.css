@@ -2006,6 +2006,853 @@ body {
   display: none !important;
 }
 
+/* ==========================================================================
+   15. 🎩 單人 AI 挑戰賽：魔法甜點櫥窗爭霸 (AI Challenge Mode)
+   ========================================================================== */
+
+/* 主題色與卡片擴充 */
+.bg-purple {
+  background-color: #F3E5F5;
+  color: #7B1FA2;
+}
+
+.purple-btn {
+  background: linear-gradient(135deg, #8E24AA, #6A1B9A);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 14px rgba(106, 27, 154, 0.35);
+  transition: all 0.25s ease;
+}
+
+.purple-btn:hover {
+  background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(106, 27, 154, 0.45);
+}
+
+.ai-badge-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -6px;
+  margin-bottom: 4px;
+}
+
+/* -------------------- A. 設定畫面 (screen-ai-setup) -------------------- */
+.screen-ai-setup {
+  gap: 20px;
+}
+
+.screen-ai-setup.active {
+  display: flex !important;
+}
+
+.ai-setup-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 對決看板 (貓咪 vs 怪盜) */
+.ai-versus-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95), rgba(243, 229, 245, 0.95));
+  border: 3px solid #AB47BC;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.versus-fighter {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fighter-avatar {
+  font-size: 3.5rem;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.cat-pulse {
+  animation: catPulse 2s infinite ease-in-out;
+}
+
+.phantom-float {
+  animation: phantomFloat 2.5s infinite ease-in-out;
+}
+
+@keyframes catPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes phantomFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.fighter-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fighter-role {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.fighter-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.fighter-stamp-tag {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.player-side .fighter-stamp-tag {
+  background: #FFF3E0;
+  color: #E65100;
+  border: 1px solid #FFB74D;
+}
+
+.ai-side .fighter-stamp-tag {
+  background: #EDE7F6;
+  color: #4A148C;
+  border: 1px solid #BA68C8;
+}
+
+.versus-badge {
+  font-size: 1.8rem;
+  font-weight: 900;
+  font-style: italic;
+  color: #D81B60;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  background: #FFF;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px dashed #D81B60;
+}
+
+/* 規則說明卡片 */
+.ai-rules-card {
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-rules-card h4 {
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rule-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.rule-desc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.rule-desc strong {
+  font-size: 1.05rem;
+  color: #4A148C;
+}
+
+/* 設定選項區 */
+.ai-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.difficulty-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.diff-btn {
+  background: var(--bg-primary);
+  border: 2.5px solid #E0E0E0;
+  border-radius: var(--radius-md);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family);
+  text-align: center;
+}
+
+.diff-btn:hover {
+  transform: translateY(-2px);
+  border-color: #BA68C8;
+}
+
+.diff-btn.active {
+  background: #F3E5F5;
+  border-color: #8E24AA;
+  box-shadow: 0 4px 12px rgba(142, 36, 170, 0.25);
+}
+
+.diff-emoji {
+  font-size: 1.8rem;
+}
+
+.diff-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.diff-time {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #6A1B9A;
+  background: white;
+  padding: 2px 10px;
+  border-radius: 10px;
+  border: 1px solid #CE93D8;
+}
+
+.diff-desc {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cat-btn {
+  background: var(--bg-primary);
+  border: 2px solid #E0E0E0;
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family);
+}
+
+.cat-btn:hover {
+  border-color: #BA68C8;
+}
+
+.cat-btn.active {
+  background: #6A1B9A;
+  color: white;
+  border-color: #6A1B9A;
+  box-shadow: 0 2px 8px rgba(106, 27, 154, 0.3);
+}
+
+.ai-setup-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* -------------------- B. 甜點櫥窗對戰畫面 (screen-ai-game) -------------------- */
+.screen-ai-game {
+  gap: 18px;
+}
+
+.screen-ai-game.active {
+  display: flex !important;
+}
+
+.ai-top-status-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.status-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.player-pill {
+  background: #FFF8E1;
+  color: #E65100;
+  border: 2px solid #FFA000;
+}
+
+.ai-pill {
+  background: #F3E5F5;
+  color: #6A1B9A;
+  border: 2px solid #AB47BC;
+}
+
+.diff-pill {
+  background: #EDE7F6;
+  color: #4A148C;
+  border: 1.5px solid #BA68C8;
+}
+
+/* 對抗主容器（左側櫥窗 + 右側面板） */
+.ai-arena-container {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ai-arena-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 左側：3x3 魔法甜點櫥窗玻璃櫃 */
+.pastry-showcase-wrapper {
+  background: linear-gradient(145deg, #FFFFFF, #FFF9C4);
+  border: 4px solid #8D6E63;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(141, 110, 99, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.showcase-glass-header {
+  text-align: center;
+  border-bottom: 2px dashed #D7CCC8;
+  padding-bottom: 12px;
+}
+
+.showcase-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #4E342E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.showcase-sub {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #795548;
+  margin-top: 4px;
+}
+
+/* 3x3 櫥窗格子 Grid */
+.pastry-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  position: relative;
+}
+
+.showcase-cell {
+  background: white;
+  border: 3px solid #D7CCC8;
+  border-radius: var(--radius-md);
+  padding: 12px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 120px;
+  position: relative;
+  cursor: default;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.06);
+}
+
+.showcase-cell.center-cell {
+  border-color: #FFB74D;
+  background: #FFFDE7;
+}
+
+/* 學生答對後的等待點選狀態 */
+.showcase-cell.waiting-selection {
+  cursor: pointer !important;
+  border: 3px dashed #FFA000 !important;
+  background: #FFF9C4 !important;
+  animation: cellPulse 1.2s infinite ease-in-out;
+}
+
+.showcase-cell.waiting-selection:hover {
+  transform: scale(1.06);
+  background: #FFE082 !important;
+  box-shadow: 0 6px 16px rgba(255, 160, 0, 0.4);
+}
+
+@keyframes cellPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 160, 0, 0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 160, 0, 0); }
+}
+
+.cell-pastry-emoji {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.cell-pastry-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.cell-fraction-badge {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #5D4037;
+  background: #EFEBE9;
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid #D7CCC8;
+}
+
+/* 印章層 */
+.cell-stamp {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: calc(var(--radius-md) - 3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cell-stamp.active {
+  display: flex !important;
+  animation: stampPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes stampPop {
+  0% { transform: scale(2.2); opacity: 0; }
+  60% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 貓咪金章 */
+.cell-stamp.stamp-gold {
+  background: rgba(255, 236, 179, 0.88);
+  border: 4px solid #FFA000;
+}
+
+.cell-stamp.stamp-gold::after {
+  content: "🌟 貓咪領地";
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #BF360C;
+  text-shadow: 0 1px 2px white;
+  transform: rotate(-12deg);
+  border: 2px solid #E65100;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 怪盜紫章 */
+.cell-stamp.stamp-purple {
+  background: rgba(237, 231, 246, 0.88);
+  border: 4px solid #7B1FA2;
+}
+
+.cell-stamp.stamp-purple::after {
+  content: "🃏 怪盜佔領";
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #4A148C;
+  text-shadow: 0 1px 2px white;
+  transform: rotate(12deg);
+  border: 2px solid #6A1B9A;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 連線高光效果 */
+.showcase-cell.bingo-cell {
+  animation: bingoCellShine 1s infinite alternate ease-in-out;
+  border-color: #E91E63 !important;
+}
+
+@keyframes bingoCellShine {
+  0% { box-shadow: 0 0 8px #FFD54F; }
+  100% { box-shadow: 0 0 20px #FF4081, 0 0 30px #FFD54F; }
+}
+
+/* 右側：怪盜面板 + 答題區 */
+.ai-action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 怪盜卡片 */
+.phantom-boss-card {
+  background: linear-gradient(135deg, #4A148C, #311B92);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: 0 8px 20px rgba(49, 27, 146, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phantom-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.phantom-avatar-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  position: relative;
+}
+
+.phantom-status-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00E676;
+  border: 2px solid white;
+}
+
+.phantom-status-dot.paused {
+  background: #FFB300;
+}
+
+.phantom-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.phantom-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.safety-valve-badge {
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: #FFD54F;
+  color: #3E2723;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  animation: blinkWarn 1.2s infinite;
+}
+
+@keyframes blinkWarn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+/* 怪盜台詞氣泡 */
+.phantom-speech-bubble {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: #EDE7F6;
+  position: relative;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+/* 思考計時進度條 */
+.phantom-timer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timer-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #D1C4E9;
+}
+
+.timer-countdown {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #FFEB3B;
+  font-variant-numeric: tabular-nums;
+}
+
+.phantom-progress-track {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.phantom-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #FF4081, #BA68C8);
+  border-radius: 6px;
+  transition: width 0.1s linear;
+}
+
+.phantom-progress-bar.paused {
+  background: #FFB300 !important;
+  animation: progressPulse 1s infinite alternate;
+}
+
+@keyframes progressPulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* 學生答題工作卡片 */
+.ai-question-card {
+  background: white;
+  border: 2px solid var(--color-brown-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.question-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.question-type-badge {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #5D4037;
+  background: #EFEBE9;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid #D7CCC8;
+}
+
+.combo-counter-badge {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #E65100;
+  background: #FFF3E0;
+  border: 1.5px solid #FF9800;
+  padding: 4px 12px;
+  border-radius: 12px;
+  animation: comboPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.question-prompt-box {
+  background: var(--bg-primary);
+  border: 2px dashed #BCAAA4;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.question-prompt-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.question-target-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 50px;
+}
+
+/* 4 個選項按鈕 Grid */
+.ai-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ai-opt-btn {
+  background: white;
+  border: 2.5px solid #D7CCC8;
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-opt-btn:hover {
+  transform: translateY(-2px);
+  border-color: #8E24AA;
+  background: #F3E5F5;
+}
+
+.ai-opt-btn.correct-burst {
+  background: #E8F5E9 !important;
+  border-color: #4CAF50 !important;
+  color: #2E7D32 !important;
+  animation: correctBounce 0.4s ease;
+}
+
+.ai-opt-btn.wrong-shake {
+  background: #FFEBEE !important;
+  border-color: #E53935 !important;
+  color: #C62828 !important;
+  animation: shake 0.4s ease;
+}
+
+.ai-opt-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* 回饋提示 Toast */
+.ai-feedback-toast {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.ai-feedback-toast.correct {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1.5px solid #81C784;
+}
+
+.ai-feedback-toast.wrong {
+  background: #FFEBEE;
+  color: #C62828;
+  border: 1.5px solid #E57373;
+}
+
+.ai-feedback-toast.info {
+  background: #FFF8E1;
+  color: #F57F17;
+  border: 1.5px solid #FFD54F;
+}
+
+
 
 
 

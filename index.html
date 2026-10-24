@@ -71,6 +71,16 @@
             </div>
             <button class="play-btn blue-btn">雙人對戰</button>
           </div>
+
+          <div class="mode-card" id="card-mode-ai">
+            <div class="mode-card-icon bg-purple">🎩</div>
+            <h3>單人 AI 挑戰賽</h3>
+            <p>魔法甜點櫥窗爭霸！與怪盜幻影甜點師鬥智，搶先完成九宮格連線！</p>
+            <div class="ai-badge-row">
+              <span class="selector-label" style="font-size: 0.95rem; font-weight: 600; color: #6A1B9A;">🏆 3×3 棋盤領地連線型</span>
+            </div>
+            <button class="play-btn purple-btn" type="button">挑戰怪盜</button>
+          </div>
         </div>
         <div class="welcome-action-row" style="margin-top: 32px; display: flex; justify-content: center;">
           <button id="btn-welcome-secret-guide" class="standard-btn magic-guide-btn">📖 魔法烘培秘笈</button>
@@ -563,6 +573,265 @@
       </div>
     </section>
 
+    <!-- Screen 8-A: AI Challenge Setup Screen -->
+    <section id="screen-ai-setup" class="game-screen screen-ai-setup">
+      <div class="game-header">
+        <div class="level-indicator">
+          <span class="level-icon">🎩</span>
+          <span class="level-name">單人 AI 挑戰賽：魔法甜點櫥窗爭霸</span>
+        </div>
+        <button id="btn-ai-setup-back" class="standard-btn secondary-btn">🏠 返回大廳</button>
+      </div>
+
+      <div class="ai-setup-container">
+        <!-- 角色對決看板 -->
+        <div class="ai-versus-banner">
+          <div class="versus-fighter player-side">
+            <div class="fighter-avatar cat-pulse">🐱</div>
+            <div class="fighter-info">
+              <span class="fighter-role">甜點小廚神</span>
+              <h3 class="fighter-name">貓咪主廚 (玩家)</h3>
+              <span class="fighter-stamp-tag">🌟 貓咪金章</span>
+            </div>
+          </div>
+          <div class="versus-badge">VS</div>
+          <div class="versus-fighter ai-side">
+            <div class="fighter-avatar phantom-float">🎩</div>
+            <div class="fighter-info">
+              <span class="fighter-role">魔界神偷</span>
+              <h3 class="fighter-name">怪盜幻影甜點師 (AI)</h3>
+              <span class="fighter-stamp-tag">🃏 怪盜紫章</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 規則說明卡片 -->
+        <div class="ai-rules-card">
+          <h4>📜 甜點櫥窗爭霸規則</h4>
+          <div class="rules-grid">
+            <div class="rule-item">
+              <span class="rule-icon">🧁</span>
+              <div class="rule-desc">
+                <strong>3×3 甜點櫥窗：</strong>
+                <span>櫥窗內陳列 9 道美味等值點心，每格都有等值分數標籤。</span>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">🌟</span>
+              <div class="rule-desc">
+                <strong>答對蓋章搶地盤：</strong>
+                <span>學生答對等值分數題目，即可點選櫥窗任意空格蓋上金章！</span>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">⏱️</span>
+              <div class="rule-desc">
+                <strong>怪盜倒數偷點心：</strong>
+                <span>怪盜倒數結束會偷走一格蓋上紫章，先連成一線者獲勝！</span>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">🛡️</span>
+              <div class="rule-desc">
+                <strong>安心教學安全閥：</strong>
+                <span>答錯時怪盜計時自動暫停，仔細閱讀解析，無挫折安心學！</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 設定選項區 -->
+        <div class="ai-settings-panel">
+          <!-- 難度選擇 -->
+          <div class="ai-setting-group">
+            <label class="setting-title">🎯 選擇怪盜難度：</label>
+            <div class="difficulty-options">
+              <button type="button" class="diff-btn" data-diff="apprentice">
+                <span class="diff-emoji">🟢</span>
+                <span class="diff-title">學徒怪盜</span>
+                <span class="diff-time">思考 12~15 秒</span>
+                <span class="diff-desc">新手推薦・動作慢・隨機選格</span>
+              </button>
+              <button type="button" class="diff-btn active" data-diff="master">
+                <span class="diff-emoji">🟡</span>
+                <span class="diff-title">師傅怪盜</span>
+                <span class="diff-time">思考 8~10 秒</span>
+                <span class="diff-desc">實力均衡・偶爾阻擋・勝負刺激</span>
+              </button>
+              <button type="button" class="diff-btn" data-diff="chef">
+                <span class="diff-emoji">🔴</span>
+                <span class="diff-title">主廚怪盜</span>
+                <span class="diff-time">思考 4.5~6.5 秒</span>
+                <span class="diff-desc">頂尖神偷・絕殺連線・智慧防守</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 題型範疇選擇 -->
+          <div class="ai-setting-group">
+            <label class="setting-title">📚 選擇挑戰範疇：</label>
+            <div class="category-options">
+              <button type="button" class="cat-btn active" data-cat="all">🌈 全能綜合考驗 (推薦)</button>
+              <button type="button" class="cat-btn" data-cat="g1">🍕 關卡一：連續量等值披薩</button>
+              <button type="button" class="cat-btn" data-cat="g2">🍩 關卡二：離散量甜甜圈包裝</button>
+              <button type="button" class="cat-btn" data-cat="g3">⚖️ 關卡三：等值天平乘除變換</button>
+              <button type="button" class="cat-btn" data-cat="g4">🐰 關卡四：數線跳躍分小數</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 啟動按鈕 -->
+        <div class="ai-setup-actions">
+          <button id="btn-start-ai-battle" class="play-btn purple-btn" style="max-width: 320px; font-size: 1.25rem;">🚀 進入甜點櫥窗爭霸</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 8-B: AI Showcase Battle Arena -->
+    <section id="screen-ai-game" class="game-screen screen-ai-game">
+      <div class="game-header">
+        <div class="level-indicator">
+          <span class="level-icon">🎩</span>
+          <span class="level-name" id="ai-header-status">甜點櫥窗爭霸：第 1 題</span>
+        </div>
+        <div class="ai-top-status-bar">
+          <span class="status-pill player-pill">🐱 貓咪: <strong id="ai-count-player">0</strong> 格</span>
+          <span class="status-pill ai-pill">🎩 怪盜: <strong id="ai-count-ai">0</strong> 格</span>
+          <span class="status-pill diff-pill" id="ai-diff-badge">🟡 師傅怪盜</span>
+        </div>
+        <button id="btn-ai-game-quit" class="standard-btn secondary-btn">🏳️ 投降返回</button>
+      </div>
+
+      <div class="ai-arena-container">
+        <!-- 左側：3x3 魔法甜點櫥窗 -->
+        <div class="pastry-showcase-wrapper">
+          <div class="showcase-glass-header">
+            <div class="showcase-title">
+              <span class="sparkle-icon">✨</span>
+              <span>皇家魔法甜點櫥窗</span>
+              <span class="sparkle-icon">✨</span>
+            </div>
+            <div class="showcase-sub" id="ai-showcase-hint">提示：答對題目後點選任一甜點蓋上金章！</div>
+          </div>
+
+          <!-- 3x3 甜點展示格子 Grid -->
+          <div class="pastry-showcase-grid" id="pastry-showcase-grid">
+            <!-- 9 個 cell 由 JS 動態渲染或靜態結構配合 -->
+            <div class="showcase-cell" data-index="0">
+              <div class="cell-pastry-emoji">🍰</div>
+              <div class="cell-pastry-name">草莓蛋糕</div>
+              <div class="cell-fraction-badge" id="cell-frac-0">1/2 盤</div>
+              <div class="cell-stamp" id="stamp-0"></div>
+            </div>
+            <div class="showcase-cell" data-index="1">
+              <div class="cell-pastry-emoji">🍩</div>
+              <div class="cell-pastry-name">巧克力圈</div>
+              <div class="cell-fraction-badge" id="cell-frac-1">2/4 盒</div>
+              <div class="cell-stamp" id="stamp-1"></div>
+            </div>
+            <div class="showcase-cell" data-index="2">
+              <div class="cell-pastry-emoji">🍮</div>
+              <div class="cell-pastry-name">香草布丁</div>
+              <div class="cell-fraction-badge" id="cell-frac-2">3/6 杯</div>
+              <div class="cell-stamp" id="stamp-2"></div>
+            </div>
+            <div class="showcase-cell" data-index="3">
+              <div class="cell-pastry-emoji">🍬</div>
+              <div class="cell-pastry-name">馬卡龍</div>
+              <div class="cell-fraction-badge" id="cell-frac-3">1/3 罐</div>
+              <div class="cell-stamp" id="stamp-3"></div>
+            </div>
+            <div class="showcase-cell center-cell" data-index="4">
+              <div class="cell-pastry-emoji">🧁</div>
+              <div class="cell-pastry-name">藍莓杯子</div>
+              <div class="cell-fraction-badge" id="cell-frac-4">2/6 盤</div>
+              <div class="cell-stamp" id="stamp-4"></div>
+            </div>
+            <div class="showcase-cell" data-index="5">
+              <div class="cell-pastry-emoji">🥞</div>
+              <div class="cell-pastry-name">舒芙蕾鬆餅</div>
+              <div class="cell-fraction-badge" id="cell-frac-5">4/12 份</div>
+              <div class="cell-stamp" id="stamp-5"></div>
+            </div>
+            <div class="showcase-cell" data-index="6">
+              <div class="cell-pastry-emoji">🥧</div>
+              <div class="cell-pastry-name">蘋果肉桂派</div>
+              <div class="cell-fraction-badge" id="cell-frac-6">3/4 塊</div>
+              <div class="cell-stamp" id="stamp-6"></div>
+            </div>
+            <div class="showcase-cell" data-index="7">
+              <div class="cell-pastry-emoji">🍓</div>
+              <div class="cell-pastry-name">草莓生乳塔</div>
+              <div class="cell-fraction-badge" id="cell-frac-7">6/8 盒</div>
+              <div class="cell-stamp" id="stamp-7"></div>
+            </div>
+            <div class="showcase-cell" data-index="8">
+              <div class="cell-pastry-emoji">🍪</div>
+              <div class="cell-pastry-name">燕麥曲奇</div>
+              <div class="cell-fraction-badge" id="cell-frac-8">9/12 罐</div>
+              <div class="cell-stamp" id="stamp-8"></div>
+            </div>
+          </div>
+
+          <!-- 連線光效覆蓋層 -->
+          <div class="showcase-bingo-overlay" id="showcase-bingo-overlay"></div>
+        </div>
+
+        <!-- 右側：怪盜面板 + 答題區 -->
+        <div class="ai-action-panel">
+          <!-- 怪盜資訊卡片 -->
+          <div class="phantom-boss-card">
+            <div class="phantom-header">
+              <div class="phantom-avatar-box">
+                <span class="phantom-icon">🎩</span>
+                <span class="phantom-status-dot" id="phantom-status-dot"></span>
+              </div>
+              <div class="phantom-meta">
+                <div class="phantom-name">怪盜幻影甜點師</div>
+                <div class="safety-valve-badge" id="safety-valve-badge" style="display: none;">⏸️ 怪盜暫停中，請安心思考！</div>
+              </div>
+            </div>
+            <!-- 怪盜對話氣泡 -->
+            <div class="phantom-speech-bubble" id="phantom-speech-bubble">
+              「這座甜點櫥窗裡的等值美饌，我全都包下了！有本事就先連成一線吧！」
+            </div>
+            <!-- 思考計時進度條 -->
+            <div class="phantom-timer-container">
+              <div class="timer-label-row">
+                <span class="timer-title">⏱️ 怪盜下手倒數：</span>
+                <span class="timer-countdown" id="phantom-timer-text">9.0 秒</span>
+              </div>
+              <div class="phantom-progress-track">
+                <div class="phantom-progress-bar" id="phantom-progress-bar" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 學生答題工作卡片 -->
+          <div class="ai-question-card" id="ai-question-card">
+            <div class="question-header-row">
+              <span class="question-type-badge" id="ai-q-type-badge">等值分數大考驗</span>
+              <span class="combo-counter-badge" id="ai-combo-badge" style="display: none;">🔥 連續答對 x1</span>
+            </div>
+            <div class="question-prompt-box">
+              <p class="question-prompt-text" id="ai-q-prompt-text">請找出與下列分數等值的分數：</p>
+              <div class="question-target-display" id="ai-q-target-display">
+                <!-- 直式分數展示 -->
+              </div>
+            </div>
+
+            <!-- 4 個選項按鈕 -->
+            <div class="ai-options-grid" id="ai-options-grid">
+              <!-- 按鈕由 JS 填充 -->
+            </div>
+
+            <!-- 即時提示/回饋訊息 -->
+            <div class="ai-feedback-toast" id="ai-feedback-toast" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Screen 9: Result Screen -->
     <section id="screen-result" class="game-screen screen-result">
       <div class="result-medal" id="result-medal">🏆</div>
@@ -685,6 +954,18 @@
           <div class="guide-detail">
             <p><strong>🧁 極速概念整合：</strong>考驗等值分數配對、等值變換算式填空、分數與小數互換的敏捷度。先答對得 10 分，答錯扣 5 分！</p>
             <p class="tip-bubble">💡 <strong>對決秘訣：</strong>點擊甜點按鈕（🧁 10題、🍩 20題、🍪 30題）自訂題數。雙方的選項順序會隨機打亂，專注看清自己盤中的分數吧！</p>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <div class="guide-subtitle">
+            <span class="guide-icon">🎩</span>
+            <h5>單人 AI 挑戰賽：魔法甜點櫥窗爭霸</h5>
+          </div>
+          <div class="guide-detail">
+            <p><strong>🍰 3×3 棋盤領地佔領連線：</strong>每一格陳列美味等值點心，答對題目可蓋上「🌟 貓咪金章」佔領該格；怪盜倒數結束會偷走一格蓋上「🃏 怪盜紫章」。先完成橫、直、斜任一條 3 格連線者立即獲勝！</p>
+            <p><strong>🛡️ 安心教學安全閥：</strong>如果不小心按錯選項，怪盜的倒數計時會立刻<strong>暫停凍結</strong>，讓你能從容閱讀提示並更正，完全沒有被倒數催促的緊張壓力！</p>
+            <p class="tip-bubble">💡 <strong>致勝秘訣：</strong>九宮格最關鍵的位置就是「正中心」（藍莓杯子蛋糕）與四個角落！先佔領中心可以製造雙向連線機會，同時也要提防怪盜連成一線喔！</p>
           </div>
         </section>
 

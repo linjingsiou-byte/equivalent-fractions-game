@@ -145,6 +145,63 @@ const SoundManager = {
       osc.start(this.ctx.currentTime);
       osc.stop(this.ctx.currentTime + 0.08);
     } catch (e) {}
+  },
+
+  // 蓋章印記音效 (Stamp Thud & Crisp)
+  playStamp() {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      const now = this.ctx.currentTime;
+      // 沉穩低頓音 (Thump)
+      const osc1 = this.ctx.createOscillator();
+      const gain1 = this.ctx.createGain();
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(150, now);
+      osc1.frequency.exponentialRampToValueAtTime(45, now + 0.12);
+      gain1.gain.setValueAtTime(0.35, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc1.connect(gain1);
+      gain1.connect(this.ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.12);
+
+      // 木質輕脆反饋 (Click)
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(750, now);
+      osc2.frequency.exponentialRampToValueAtTime(320, now + 0.07);
+      gain2.gain.setValueAtTime(0.2, now);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc2.connect(gain2);
+      gain2.connect(this.ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.07);
+    } catch (e) {}
+  },
+
+  // 魔法連線璀璨琶音 (Magic Sparkle)
+  playMagicSparkle() {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+      const now = this.ctx.currentTime;
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const start = now + idx * 0.07;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.18, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.45);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.45);
+      });
+    } catch (e) {}
   }
 };
 
@@ -905,6 +962,7 @@ const App = {
   init() {
     this.bindEvents();
     SoundManager.init();
+    AIGame.setup();
     
     // 歡迎頁預設朗讀
     setTimeout(() => {
@@ -931,6 +989,18 @@ const App = {
       const rounds = activeBtn ? parseInt(activeBtn.dataset.rounds) : 30;
       PvPGame.start(rounds);
     });
+
+    // 單人 AI 挑戰賽入口
+    const cardAI = document.getElementById('card-mode-ai');
+    if (cardAI) {
+      cardAI.addEventListener('click', () => {
+        SoundManager.playClick();
+        App.setGameMode('ai');
+        App.showScreen('screen-ai-setup');
+        AIGame.setup();
+        TTSManager.speak("單人 AI 挑戰賽：魔法甜點櫥窗爭霸！請選擇怪盜難度與挑戰題型！");
+      });
+    }
 
     // 綁定雙人對戰題數選擇按鈕
     document.querySelectorAll('.round-select-btn').forEach(btn => {
@@ -1069,7 +1139,11 @@ const App = {
     // 結算頁按鈕
     document.getElementById('btn-result-back').addEventListener('click', () => {
       SoundManager.playClick();
-      App.showScreen('screen-menu');
+      if (App.lastFinishedGame === 'ai') {
+        App.showScreen('screen-ai-setup');
+      } else {
+        App.showScreen('screen-menu');
+      }
     });
     
     document.getElementById('btn-result-restart').addEventListener('click', () => {
@@ -1090,6 +1164,8 @@ const App = {
       } else if (App.lastFinishedGame === 0) {
         // 重啟雙人對戰 (會內部自動 showScreen('screen-pvp'))
         PvPGame.start();
+      } else if (App.lastFinishedGame === 'ai') {
+        AIGame.start();
       } else {
         App.showScreen('screen-menu');
       }
@@ -3846,6 +3922,745 @@ const PvPGame = {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
+  }
+};
+
+// ==========================================================================
+// 12. 🎩 單人 AI 挑戰賽：魔法甜點櫥窗爭霸 (AIGame Mode)
+// ==========================================================================
+const AIGame = {
+  // 9 種等值甜點配置
+  pastries: [
+    { name: "草莓蛋糕", emoji: "🍰", fracStr: "1/2", num: 1, den: 2, label: "1/2 盤" },
+    { name: "巧克力圈", emoji: "🍩", fracStr: "2/4", num: 2, den: 4, label: "2/4 盒" },
+    { name: "香草布丁", emoji: "🍮", fracStr: "3/6", num: 3, den: 6, label: "3/6 杯" },
+    { name: "彩虹馬卡龍", emoji: "🍬", fracStr: "1/3", num: 1, den: 3, label: "1/3 罐" },
+    { name: "藍莓杯子", emoji: "🧁", fracStr: "2/6", num: 2, den: 6, label: "2/6 盤" },
+    { name: "舒芙蕾鬆餅", emoji: "🥞", fracStr: "4/12", num: 4, den: 12, label: "4/12 份" },
+    { name: "蘋果肉桂派", emoji: "🥧", fracStr: "3/4", num: 3, den: 4, label: "3/4 塊" },
+    { name: "草莓生乳塔", emoji: "🍓", fracStr: "6/8", num: 6, den: 8, label: "6/8 盒" },
+    { name: "巧克燕麥曲奇", emoji: "🍪", fracStr: "9/12", num: 9, den: 12, label: "9/12 罐" }
+  ],
+
+  // 8 條贏棋連線（3 橫、3 直、2 斜）
+  winningLines: [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // 橫線
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // 直線
+    [0, 4, 8], [2, 4, 6]             // 斜線
+  ],
+
+  // 遊戲狀態
+  board: Array(9).fill(null), // null | 'player' | 'ai'
+  difficulty: 'master', // 'apprentice' | 'master' | 'chef'
+  category: 'all', // 'all' | 'g1' | 'g2' | 'g3' | 'g4'
+  
+  playerCount: 0,
+  aiCount: 0,
+  combo: 0,
+  maxCombo: 0,
+  questionIndex: 0,
+  currentQuestion: null,
+  
+  aiInterval: null,
+  aiTimeRemaining: 0,
+  aiTotalTime: 9.0,
+  isSafetyValveActive: false,
+  hasClaimPending: false,
+  isGameOver: false,
+
+  // 難度設定時間參數
+  difficultyConfig: {
+    apprentice: { minTime: 12.0, maxTime: 15.0, name: "🟢 學徒怪盜", smartRate: 0.0 },
+    master: { minTime: 8.0, maxTime: 10.0, name: "🟡 師傅怪盜", smartRate: 0.65 },
+    chef: { minTime: 4.5, maxTime: 6.5, name: "🔴 主廚怪盜", smartRate: 1.0 }
+  },
+
+  // 怪盜台詞庫
+  quotes: {
+    start: [
+      "這座甜點櫥窗裡的等值美饌，我全都包下了！有本事就先連成一線吧！",
+      "聽說你是分數魔法學院的高材生？那就讓我看看你的等值本領吧！",
+      "動作慢點的話，美味的舒芙蕾和草莓派可都要進我口袋囉！"
+    ],
+    playerClaim: [
+      "嘖嘖，被你搶先蓋上貓咪金章了…不過好戲才正要開始呢！",
+      "眼力挺靈敏的嘛！不過下一個格子我是不會讓給你的！",
+      "可惡，我的連線計畫被你打亂了！"
+    ],
+    aiClaim: [
+      "哈哈！這格美味的點心，我就不客氣地收下蓋上紫章囉！",
+      "速度太慢囉！看我怪盜的幻影偷術！",
+      "差一點點我就要連成一線了，你可要小心囉！"
+    ],
+    waterDown: [
+      "呼啊～這泡芙太美味了，先讓我喝口大吉嶺紅茶慢慢來～",
+      "本怪盜今天心情好，就稍微放慢手腳給你一次機會吧！"
+    ],
+    playerWin: [
+      "怎、怎麼可能？！竟然讓你先達成連線了…！",
+      "甘拜下風！你對等值分數的理解，甚至凌駕於我的怪盜魔法之上！"
+    ],
+    aiWin: [
+      "哈哈哈哈！九宮格連線完成！整座甜點櫥窗都是怪盜的啦！",
+      "這場甜點爭霸是我贏了！下次再來挑戰我吧！"
+    ],
+    draw: [
+      "平分秋色！看來你跟我一樣深愛著這些等值甜點呢！"
+    ]
+  },
+
+  // 1. 初始化設定頁
+  setup() {
+    // 難度切換綁定
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+      btn.onclick = () => {
+        SoundManager.playClick();
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.difficulty = btn.dataset.diff;
+      };
+    });
+
+    // 範疇切換綁定
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.onclick = () => {
+        SoundManager.playClick();
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.category = btn.dataset.cat;
+      };
+    });
+
+    // 開始挑戰按鈕
+    const startBtn = document.getElementById('btn-start-ai-battle');
+    if (startBtn) {
+      startBtn.onclick = () => {
+        SoundManager.playClick();
+        this.start();
+      };
+    }
+
+    // 返回大廳
+    const backBtn = document.getElementById('btn-ai-setup-back');
+    if (backBtn) {
+      backBtn.onclick = () => {
+        SoundManager.playClick();
+        App.showScreen('screen-welcome');
+      };
+    }
+  },
+
+  // 2. 啟動遊戲
+  start() {
+    this.board = Array(9).fill(null);
+    this.playerCount = 0;
+    this.aiCount = 0;
+    this.combo = 0;
+    this.maxCombo = 0;
+    this.questionIndex = 0;
+    this.hasClaimPending = false;
+    this.isSafetyValveActive = false;
+    this.isGameOver = false;
+
+    // 清空計時器
+    this.stopAITimer();
+
+    // 更新頂部 UI
+    const diffInfo = this.difficultyConfig[this.difficulty];
+    document.getElementById('ai-diff-badge').innerText = diffInfo.name;
+    document.getElementById('ai-count-player').innerText = "0";
+    document.getElementById('ai-count-ai').innerText = "0";
+    document.getElementById('ai-combo-badge').style.display = "none";
+    document.getElementById('safety-valve-badge').style.display = "none";
+    document.getElementById('phantom-status-dot').className = "phantom-status-dot";
+
+    // 重設 9 格櫥窗 UI
+    const cells = document.querySelectorAll('.showcase-cell');
+    cells.forEach((cell, idx) => {
+      cell.classList.remove('waiting-selection', 'bingo-cell');
+      const stamp = document.getElementById(`stamp-${idx}`);
+      if (stamp) {
+        stamp.className = 'cell-stamp';
+      }
+      // 點選格子佔領事件
+      cell.onclick = () => {
+        this.handleCellClick(idx);
+      };
+    });
+
+    // 退出按鈕
+    const quitBtn = document.getElementById('btn-ai-game-quit');
+    if (quitBtn) {
+      quitBtn.onclick = () => {
+        this.quit();
+      };
+    }
+
+    // 隨機開場怪盜台詞
+    const startQuote = this.quotes.start[Math.floor(Math.random() * this.quotes.start.length)];
+    this.setPhantomSpeech(startQuote);
+
+    // 切換至對抗畫面
+    App.showScreen('screen-ai-game');
+    TTSManager.speak("魔法甜點櫥窗爭霸開始！快找出等值分數，搶先完成九宮格連線！");
+
+    // 出第一題
+    this.initQuestion();
+  },
+
+  // 3. 生成題目
+  generateQuestion() {
+    // 依選取的類別產生等值題目
+    const cat = this.category === 'all' 
+      ? ['g1', 'g2', 'g3', 'g4'][Math.floor(Math.random() * 4)]
+      : this.category;
+
+    if (cat === 'g1') {
+      // 題型：連續量等值披薩
+      const basePool = [
+        { num: 1, den: 2, eq: { num: 2, den: 4 }, wrongs: [{ num: 1, den: 3 }, { num: 2, den: 5 }, { num: 3, den: 8 }] },
+        { num: 1, den: 2, eq: { num: 3, den: 6 }, wrongs: [{ num: 2, den: 6 }, { num: 1, den: 4 }, { num: 3, den: 7 }] },
+        { num: 2, den: 3, eq: { num: 4, den: 6 }, wrongs: [{ num: 3, den: 6 }, { num: 2, den: 5 }, { num: 4, den: 8 }] },
+        { num: 3, den: 4, eq: { num: 6, den: 8 }, wrongs: [{ num: 5, den: 8 }, { num: 3, den: 6 }, { num: 6, den: 10 }] },
+        { num: 1, den: 4, eq: { num: 2, den: 8 }, wrongs: [{ num: 1, den: 8 }, { num: 2, den: 6 }, { num: 3, den: 8 }] },
+        { num: 2, den: 5, eq: { num: 4, den: 10 }, wrongs: [{ num: 3, den: 10 }, { num: 2, den: 10 }, { num: 5, den: 10 }] }
+      ];
+      const qData = basePool[Math.floor(Math.random() * basePool.length)];
+      return {
+        typeBadge: "🍕 連續量等值披薩",
+        promptText: "請找出與下方披薩盤等值的分數：",
+        targetHTML: `<span class="math-fraction"><span class="num">${qData.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${qData.den}</span></span>`,
+        correct: qData.eq,
+        wrongs: qData.wrongs,
+        hintText: `將分子分母同時乘上相同的數，大小完全不變喔！`
+      };
+    } else if (cat === 'g2') {
+      // 題型：離散量甜甜圈包裝
+      const packPool = [
+        { total: 12, groupDen: 3, groupNum: 1, eqFrac: { num: 2, den: 6 }, wrongs: [{ num: 1, den: 6 }, { num: 2, den: 5 }, { num: 3, den: 6 }] },
+        { total: 12, groupDen: 3, groupNum: 2, eqFrac: { num: 4, den: 6 }, wrongs: [{ num: 3, den: 6 }, { num: 2, den: 6 }, { num: 5, den: 6 }] },
+        { total: 16, groupDen: 4, groupNum: 3, eqFrac: { num: 6, den: 8 }, wrongs: [{ num: 5, den: 8 }, { num: 3, den: 8 }, { num: 7, den: 8 }] },
+        { total: 10, groupDen: 5, groupNum: 2, eqFrac: { num: 4, den: 10 }, wrongs: [{ num: 3, den: 10 }, { num: 2, den: 10 }, { num: 5, den: 10 }] }
+      ];
+      const qData = packPool[Math.floor(Math.random() * packPool.length)];
+      return {
+        typeBadge: "🍩 離散量甜甜圈包裝",
+        promptText: `一整盒甜甜圈有 ${qData.total} 個，平分成 ${qData.groupDen} 組，拿走 ${qData.groupNum} 組，相當於：`,
+        targetHTML: `<span class="math-fraction"><span class="num">${qData.groupNum}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${qData.groupDen}</span></span> 盒`,
+        correct: qData.eqFrac,
+        wrongs: qData.wrongs,
+        hintText: `看平分成幾組就是分母，拿走幾組就是分子！`
+      };
+    } else if (cat === 'g3') {
+      // 題型：等值天平乘除法算式
+      const isMultiply = Math.random() < 0.5;
+      if (isMultiply) {
+        const multPool = [
+          { num: 2, den: 3, mult: 2, eq: { num: 4, den: 6 }, wrongs: [{ num: 3, den: 6 }, { num: 4, den: 8 }, { num: 2, den: 6 }] },
+          { num: 1, den: 4, mult: 3, eq: { num: 3, den: 12 }, wrongs: [{ num: 2, den: 12 }, { num: 3, den: 8 }, { num: 4, den: 12 }] },
+          { num: 3, den: 5, mult: 2, eq: { num: 6, den: 10 }, wrongs: [{ num: 5, den: 10 }, { num: 6, den: 15 }, { num: 3, den: 10 }] },
+          { num: 2, den: 5, mult: 2, eq: { num: 4, den: 10 }, wrongs: [{ num: 2, den: 10 }, { num: 4, den: 8 }, { num: 5, den: 10 }] }
+        ];
+        const item = multPool[Math.floor(Math.random() * multPool.length)];
+        return {
+          typeBadge: "⚖️ 天平切細乘法",
+          promptText: `分子與分母同時乘以 ${item.mult}，計算等值分數：`,
+          targetHTML: `<span class="math-fraction"><span class="num">${item.num} × ${item.mult}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${item.den} × ${item.mult}</span></span>`,
+          correct: item.eq,
+          wrongs: item.wrongs,
+          hintText: `切細點魔法：分子與分母必須同時乘以相同的數！`
+        };
+      } else {
+        const divPool = [
+          { num: 4, den: 6, div: 2, eq: { num: 2, den: 3 }, wrongs: [{ num: 1, den: 3 }, { num: 2, den: 6 }, { num: 3, den: 3 }] },
+          { num: 6, den: 8, div: 2, eq: { num: 3, den: 4 }, wrongs: [{ num: 2, den: 4 }, { num: 3, den: 6 }, { num: 4, den: 4 }] },
+          { num: 6, den: 9, div: 3, eq: { num: 2, den: 3 }, wrongs: [{ num: 3, den: 3 }, { num: 1, den: 3 }, { num: 2, den: 6 }] },
+          { num: 8, den: 10, div: 2, eq: { num: 4, den: 5 }, wrongs: [{ num: 3, den: 5 }, { num: 4, den: 10 }, { num: 5, den: 5 }] }
+        ];
+        const item = divPool[Math.floor(Math.random() * divPool.length)];
+        return {
+          typeBadge: "🧪 天平成串除法",
+          promptText: `分子與分母同時除以 ${item.div}，計算等值分數：`,
+          targetHTML: `<span class="math-fraction"><span class="num">${item.num} ÷ ${item.div}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${item.den} ÷ ${item.div}</span></span>`,
+          correct: item.eq,
+          wrongs: item.wrongs,
+          hintText: `成串包裝魔法：分子與分母必須同時除以相同的數！`
+        };
+      }
+    } else {
+      // 題型：數線與分小數互換
+      const decPool = [
+        { dec: "0.5", num: 1, den: 2, eq: { num: 5, den: 10 }, wrongs: [{ num: 1, den: 5 }, { num: 2, den: 10 }, { num: 5, den: 100 }] },
+        { dec: "0.3", num: 3, den: 10, eq: { num: 3, den: 10 }, wrongs: [{ num: 1, den: 3 }, { num: 3, den: 100 }, { num: 6, den: 10 }] },
+        { dec: "0.7", num: 7, den: 10, eq: { num: 7, den: 10 }, wrongs: [{ num: 7, den: 100 }, { num: 1, den: 7 }, { num: 3, den: 10 }] },
+        { dec: "0.4", num: 2, den: 5, eq: { num: 4, den: 10 }, wrongs: [{ num: 2, den: 10 }, { num: 4, den: 5 }, { num: 1, den: 4 }] },
+        { dec: "0.6", num: 3, den: 5, eq: { num: 6, den: 10 }, wrongs: [{ num: 3, den: 10 }, { num: 6, den: 5 }, { num: 1, den: 6 }] }
+      ];
+      const item = decPool[Math.floor(Math.random() * decPool.length)];
+      return {
+        typeBadge: "🐰 數線分小數互換",
+        promptText: `小數 ${item.dec} 相當於下列哪一個等值分數？`,
+        targetHTML: `<strong style="font-size: 1.8rem; color: #E65100;">${item.dec}</strong>`,
+        correct: item.eq,
+        wrongs: item.wrongs,
+        hintText: `十分位的小數，分母就是 10 喔！`
+      };
+    }
+  },
+
+  // 4. 出題渲染與啟動倒數
+  initQuestion() {
+    if (this.isGameOver) return;
+    this.questionIndex++;
+    this.hasClaimPending = false;
+    this.isSafetyValveActive = false;
+
+    // 清理選格等待狀態
+    document.querySelectorAll('.showcase-cell').forEach(c => c.classList.remove('waiting-selection'));
+    document.getElementById('ai-showcase-hint').innerText = "提示：答對題目後點選任一甜點蓋上金章！";
+
+    // 更新題號
+    document.getElementById('ai-header-status').innerText = `甜點櫥窗爭霸：第 ${this.questionIndex} 題`;
+
+    // 取得題目
+    const q = this.generateQuestion();
+    this.currentQuestion = q;
+
+    // 渲染題幹
+    document.getElementById('ai-q-type-badge').innerText = q.typeBadge;
+    document.getElementById('ai-q-prompt-text').innerText = q.promptText;
+    document.getElementById('ai-q-target-display').innerHTML = q.targetHTML;
+    
+    // 隱藏回饋 toast
+    const toast = document.getElementById('ai-feedback-toast');
+    toast.style.display = 'none';
+
+    // 組合選項
+    const options = [
+      { isCorrect: true, data: q.correct },
+      { isCorrect: false, data: q.wrongs[0] },
+      { isCorrect: false, data: q.wrongs[1] },
+      { isCorrect: false, data: q.wrongs[2] }
+    ];
+    // 打亂選項
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    // 渲染 4 個直式分數選項按鈕
+    const optGrid = document.getElementById('ai-options-grid');
+    optGrid.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-opt-btn';
+      btn.innerHTML = `<span class="math-fraction"><span class="num">${opt.data.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${opt.data.den}</span></span>`;
+      btn.onclick = () => {
+        this.handleOptionSelect(btn, opt.isCorrect);
+      };
+      optGrid.appendChild(btn);
+    });
+
+    // 啟動怪盜思考計時器
+    this.startAITimer();
+  },
+
+  // 5. 怪盜計時器
+  startAITimer() {
+    this.stopAITimer();
+    const config = this.difficultyConfig[this.difficulty];
+    let totalTime = config.minTime + Math.random() * (config.maxTime - config.minTime);
+    
+    // 放水機制：學生落後 >= 2 格時，自動增加 +3.5 秒
+    if (this.aiCount - this.playerCount >= 2) {
+      totalTime += 3.5;
+      const waterQuote = this.quotes.waterDown[Math.floor(Math.random() * this.quotes.waterDown.length)];
+      this.setPhantomSpeech(waterQuote);
+    }
+
+    this.aiTotalTime = totalTime;
+    this.aiTimeRemaining = totalTime;
+
+    // 重設進度條 UI
+    const pBar = document.getElementById('phantom-progress-bar');
+    pBar.classList.remove('paused');
+    pBar.style.width = '100%';
+    document.getElementById('phantom-status-dot').className = 'phantom-status-dot';
+    document.getElementById('safety-valve-badge').style.display = 'none';
+
+    const updateIntervalMs = 100;
+    this.aiInterval = setInterval(() => {
+      if (this.isSafetyValveActive || this.hasClaimPending || this.isGameOver) {
+        return; // 安全閥暫停或等待學生選格中
+      }
+
+      this.aiTimeRemaining -= updateIntervalMs / 1000;
+      if (this.aiTimeRemaining <= 0) {
+        this.aiTimeRemaining = 0;
+        this.stopAITimer();
+        this.aiTimeoutClaim();
+      } else {
+        const percent = Math.max(0, (this.aiTimeRemaining / this.aiTotalTime) * 100);
+        pBar.style.width = `${percent}%`;
+        document.getElementById('phantom-timer-text').innerText = `${this.aiTimeRemaining.toFixed(1)} 秒`;
+      }
+    }, updateIntervalMs);
+  },
+
+  stopAITimer() {
+    if (this.aiInterval) {
+      clearInterval(this.aiInterval);
+      this.aiInterval = null;
+    }
+  },
+
+  // 6. 學生答題處理
+  handleOptionSelect(btnElement, isCorrect) {
+    if (this.hasClaimPending || this.isGameOver) return;
+
+    if (isCorrect) {
+      // 答對了！
+      SoundManager.playCorrect();
+      btnElement.classList.add('correct-burst');
+
+      // 累計 Combo
+      this.combo++;
+      if (this.combo > this.maxCombo) {
+        this.maxCombo = this.combo;
+      }
+      const comboBadge = document.getElementById('ai-combo-badge');
+      if (this.combo >= 2) {
+        comboBadge.style.display = 'inline-block';
+        comboBadge.innerText = `🔥 連續答對 x${this.combo}`;
+      }
+
+      // 禁用所有題目按鈕
+      document.querySelectorAll('.ai-opt-btn').forEach(b => b.disabled = true);
+
+      // 解除安全閥
+      this.isSafetyValveActive = false;
+      document.getElementById('safety-valve-badge').style.display = 'none';
+
+      // 進入蓋章階段
+      this.hasClaimPending = true;
+      this.showToast('correct', '✨ 答對了！快點選左邊櫥窗的任一空格蓋上金章！');
+      document.getElementById('ai-showcase-hint').innerText = "👉 請點選任一發光的空白甜點格進行佔領！";
+
+      // 讓所有未佔領的格子產生呼吸閃爍光
+      this.board.forEach((owner, idx) => {
+        if (owner === null) {
+          const cell = document.querySelector(`.showcase-cell[data-index="${idx}"]`);
+          if (cell) cell.classList.add('waiting-selection');
+        }
+      });
+
+      // 語音報讀指引
+      TTSManager.speak("答對了！請在甜點櫥窗點選一格蓋上貓咪金章！");
+
+    } else {
+      // 答錯觸發【教學安全閥】！
+      SoundManager.playWrong();
+      btnElement.classList.add('wrong-shake');
+      btnElement.disabled = true;
+
+      // 中斷 Combo
+      this.combo = 0;
+      document.getElementById('ai-combo-badge').style.display = 'none';
+
+      // 凍結怪盜計時器
+      this.isSafetyValveActive = true;
+      document.getElementById('phantom-status-dot').className = 'phantom-status-dot paused';
+      document.getElementById('phantom-progress-bar').classList.add('paused');
+      document.getElementById('safety-valve-badge').style.display = 'inline-block';
+
+      // 友善解析提示
+      this.showToast('wrong', `⏸️ 怪盜暫停中！${this.currentQuestion.hintText}`);
+      TTSManager.speak(`別著急！怪盜已經暫停倒數，請仔細想想，再選一次！`);
+    }
+  },
+
+  // 7. 學生點選格子蓋章
+  handleCellClick(index) {
+    if (!this.hasClaimPending || this.isGameOver) return;
+    if (this.board[index] !== null) {
+      TTSManager.speak("這格已經被佔領囉！請選其他空格！");
+      return;
+    }
+
+    // 成功蓋章
+    SoundManager.playStamp();
+    this.board[index] = 'player';
+    this.playerCount++;
+    this.hasClaimPending = false;
+
+    // 更新格子視覺
+    const cell = document.querySelector(`.showcase-cell[data-index="${index}"]`);
+    if (cell) {
+      cell.classList.remove('waiting-selection');
+    }
+    const stamp = document.getElementById(`stamp-${index}`);
+    if (stamp) {
+      stamp.className = 'cell-stamp active stamp-gold';
+    }
+
+    // 清除其他格子的等待光芒
+    document.querySelectorAll('.showcase-cell').forEach(c => c.classList.remove('waiting-selection'));
+
+    // 更新分數計數
+    document.getElementById('ai-count-player').innerText = this.playerCount;
+
+    // 怪盜台詞
+    const claimQuote = this.quotes.playerClaim[Math.floor(Math.random() * this.quotes.playerClaim.length)];
+    this.setPhantomSpeech(claimQuote);
+
+    // 檢查連線
+    const winResult = this.checkWin('player');
+    if (winResult.won) {
+      this.triggerWin('player', winResult.line);
+    } else if (this.isBoardFull()) {
+      this.triggerBoardFullEnd();
+    } else {
+      // 繼續下一題
+      setTimeout(() => {
+        this.initQuestion();
+      }, 900);
+    }
+  },
+
+  // 8. 怪盜時間到偷佔一格
+  aiTimeoutClaim() {
+    if (this.isGameOver) return;
+
+    // 計算怪盜最佳落子目標
+    const targetIndex = this.calculateAIMove();
+    if (targetIndex === -1) {
+      this.triggerBoardFullEnd();
+      return;
+    }
+
+    // 怪盜蓋章
+    SoundManager.playStamp();
+    this.board[targetIndex] = 'ai';
+    this.aiCount++;
+
+    const stamp = document.getElementById(`stamp-${targetIndex}`);
+    if (stamp) {
+      stamp.className = 'cell-stamp active stamp-purple';
+    }
+
+    document.getElementById('ai-count-ai').innerText = this.aiCount;
+
+    // 怪盜台詞
+    const claimQuote = this.quotes.aiClaim[Math.floor(Math.random() * this.quotes.aiClaim.length)];
+    this.setPhantomSpeech(claimQuote);
+    TTSManager.speak(`怪盜偷走了${this.pastries[targetIndex].name}！`);
+
+    // 檢查怪盜連線
+    const winResult = this.checkWin('ai');
+    if (winResult.won) {
+      this.triggerWin('ai', winResult.line);
+    } else if (this.isBoardFull()) {
+      this.triggerBoardFullEnd();
+    } else {
+      // 繼續下一題
+      setTimeout(() => {
+        this.initQuestion();
+      }, 1200);
+    }
+  },
+
+  // 9. 怪盜 AI 決策演算法
+  calculateAIMove() {
+    const emptyIndices = [];
+    this.board.forEach((owner, idx) => {
+      if (owner === null) emptyIndices.push(idx);
+    });
+    if (emptyIndices.length === 0) return -1;
+
+    const smartRate = this.difficultyConfig[this.difficulty].smartRate;
+    const isSmart = Math.random() < smartRate;
+
+    if (isSmart) {
+      // 步驟 1: 檢查怪盜自己是否差 1 格即可 3 連線 (獲勝落子)
+      for (const line of this.winningLines) {
+        const owners = line.map(i => this.board[i]);
+        const aiCount = owners.filter(o => o === 'ai').length;
+        const nullCount = owners.filter(o => o === null).length;
+        if (aiCount === 2 && nullCount === 1) {
+          return line.find(i => this.board[i] === null);
+        }
+      }
+
+      // 步驟 2: 檢查玩家是否差 1 格即可 3 連線 (絕殺防守阻擋)
+      for (const line of this.winningLines) {
+        const owners = line.map(i => this.board[i]);
+        const playerCount = owners.filter(o => o === 'player').length;
+        const nullCount = owners.filter(o => o === null).length;
+        if (playerCount === 2 && nullCount === 1) {
+          return line.find(i => this.board[i] === null);
+        }
+      }
+
+      // 步驟 3: 優先搶佔中心格 (格 4)
+      if (this.board[4] === null) {
+        return 4;
+      }
+
+      // 步驟 4: 搶佔四個角落 (0, 2, 6, 8)
+      const corners = [0, 2, 6, 8].filter(i => this.board[i] === null);
+      if (corners.length > 0) {
+        return corners[Math.floor(Math.random() * corners.length)];
+      }
+    }
+
+    // 隨機落子
+    return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+  },
+
+  // 10. 檢查勝負連線
+  checkWin(owner) {
+    for (const line of this.winningLines) {
+      if (this.board[line[0]] === owner &&
+          this.board[line[1]] === owner &&
+          this.board[line[2]] === owner) {
+        return { won: true, line: line };
+      }
+    }
+    return { won: false, line: null };
+  },
+
+  // 檢查是否所有格子已填滿
+  isBoardFull() {
+    return this.board.every(cell => cell !== null);
+  },
+
+  // 11. 觸發連線獲勝
+  triggerWin(winner, line) {
+    this.isGameOver = true;
+    this.stopAITimer();
+
+    // 高光標註贏棋的 3 格
+    line.forEach(idx => {
+      const cell = document.querySelector(`.showcase-cell[data-index="${idx}"]`);
+      if (cell) cell.classList.add('bingo-cell');
+    });
+
+    if (winner === 'player') {
+      SoundManager.playMagicSparkle();
+      Confetti.start();
+      this.setPhantomSpeech(this.quotes.playerWin[0]);
+      TTSManager.speak("恭喜九宮格連線成功！你成功守護了甜點櫥窗！");
+
+      setTimeout(() => {
+        App.lastFinishedGame = 'ai';
+        document.getElementById('result-stars').innerText = "⭐⭐⭐⭐⭐";
+        document.getElementById('result-medal').innerText = "👑";
+        document.getElementById('result-title').innerText = "櫥窗爭霸大獲全勝！";
+        document.getElementById('result-text').innerHTML = `
+          <strong>🐱 貓咪主廚成功搶先達成 3 格連線！</strong><br>
+          佔領格數：${this.playerCount} 格 ${this.maxCombo >= 2 ? `(最高連對 ${this.maxCombo} 題 🔥)` : ''}<br>
+          怪盜格數：${this.aiCount} 格<br><br>
+          你用精湛的等值分數敏捷度擊退了怪盜幻影甜點師，成功守護了皇家甜點櫥窗！
+        `;
+        App.showScreen('screen-result');
+        SoundManager.playCheer();
+      }, 2400);
+
+    } else {
+      SoundManager.playWrong();
+      this.setPhantomSpeech(this.quotes.aiWin[0]);
+      TTSManager.speak("怪盜搶先完成連線了！下次再接再厲！");
+
+      setTimeout(() => {
+        App.lastFinishedGame = 'ai';
+        document.getElementById('result-stars').innerText = "⭐⭐⭐☆☆";
+        document.getElementById('result-medal').innerText = "🎩";
+        document.getElementById('result-title').innerText = "差一點就連線了！";
+        document.getElementById('result-text').innerHTML = `
+          <strong>怪盜幻影甜點師搶先達成了 3 格連線！</strong><br>
+          你的佔領格數：${this.playerCount} 格<br>
+          怪盜佔領格數：${this.aiCount} 格<br><br>
+          別氣餒，你已經掌握了等值分數的核心！調整策略、先搶佔中央核心，再來挑戰怪盜吧！
+        `;
+        App.showScreen('screen-result');
+      }, 2400);
+    }
+  },
+
+  // 12. 棋盤填滿結算 (無連線但滿格)
+  triggerBoardFullEnd() {
+    this.isGameOver = true;
+    this.stopAITimer();
+
+    let title = "";
+    let medal = "";
+    let stars = "";
+    let msg = "";
+
+    if (this.playerCount > this.aiCount) {
+      medal = "🏆";
+      stars = "⭐⭐⭐⭐☆";
+      title = "點心守護者！";
+      msg = `9 格櫥窗全滿！你搶佔了 ${this.playerCount} 格，多於怪盜的 ${this.aiCount} 格，以格數優勢勝出！`;
+      SoundManager.playCheer();
+      Confetti.start();
+    } else if (this.aiCount > this.playerCount) {
+      medal = "🎩";
+      stars = "⭐⭐⭐☆☆";
+      title = "怪盜佔得先機！";
+      msg = `9 格櫥窗全滿！怪盜佔領了 ${this.aiCount} 格，略多於你的 ${this.playerCount} 格。下次加速答題搶佔更多格子吧！`;
+      SoundManager.playWrong();
+    } else {
+      medal = "🤝";
+      stars = "⭐⭐⭐⭐☆";
+      title = "平分秋色的美味！";
+      msg = `雙方各佔領了領地，勢均力敵！你與怪盜的甜點魔法旗鼓相當！`;
+      SoundManager.playCheer();
+    }
+
+    setTimeout(() => {
+      App.lastFinishedGame = 'ai';
+      document.getElementById('result-stars').innerText = stars;
+      document.getElementById('result-medal').innerText = medal;
+      document.getElementById('result-title').innerText = title;
+      document.getElementById('result-text').innerHTML = `
+        <strong>${msg}</strong><br><br>
+        <strong>🐱 貓咪主廚：</strong> ${this.playerCount} 格 ${this.maxCombo >= 2 ? `(最高連對 ${this.maxCombo} 題 🔥)` : ''}<br>
+        <strong>🎩 怪盜神偷：</strong> ${this.aiCount} 格
+      `;
+      App.showScreen('screen-result');
+    }, 1500);
+  },
+
+  // 輔助：更新怪盜氣泡台詞
+  setPhantomSpeech(text) {
+    const bubble = document.getElementById('phantom-speech-bubble');
+    if (bubble) {
+      bubble.style.opacity = '0';
+      setTimeout(() => {
+        bubble.innerText = `「${text}」`;
+        bubble.style.opacity = '1';
+      }, 150);
+    }
+  },
+
+  // 輔助：顯示回饋 Toast
+  showToast(type, msg) {
+    const toast = document.getElementById('ai-feedback-toast');
+    if (toast) {
+      toast.className = `ai-feedback-toast ${type}`;
+      toast.innerText = msg;
+      toast.style.display = 'block';
+    }
+  },
+
+  // 投降或退出
+  quit() {
+    this.stopAITimer();
+    this.isGameOver = true;
+    App.showScreen('screen-ai-setup');
+    window.speechSynthesis.cancel();
   }
 };
 

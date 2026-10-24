@@ -1319,9 +1319,19 @@ const Explorer = {
       btnCandy12.classList.add('active');
       btnCandy24.classList.remove('active');
       
-      // 更新分母拉桿最大值
+      // 更新分母拉桿最大值與確認是否為 12 的因數
       sliderDiscDen.max = 12;
-      if (this.discreteDen > 12) this.discreteDen = 12;
+      const factors = this.getFactors(12);
+      if (!factors.includes(this.discreteDen)) {
+        this.discreteDen = this.getClosestFactor(this.discreteDen, factors);
+        sliderDiscDen.value = this.discreteDen;
+      }
+      if (this.discreteNum > this.discreteDen) {
+        this.discreteNum = this.discreteDen;
+        sliderDiscNum.value = this.discreteNum;
+      }
+      this.hideDivisibleToast();
+      this.renderFactorChips();
       this.render();
     };
 
@@ -1332,6 +1342,8 @@ const Explorer = {
       btnCandy12.classList.remove('active');
       
       sliderDiscDen.max = 12; // 最大只分 12 組以防畫面太擠
+      this.hideDivisibleToast();
+      this.renderFactorChips();
       this.render();
     };
 
@@ -1341,6 +1353,17 @@ const Explorer = {
       const factors = this.getFactors(this.discreteTotal);
       const closest = this.getClosestFactor(val, factors);
       
+      // 優化一：餘數防呆與整除引導提示
+      if (!factors.includes(val)) {
+        const quo = Math.floor(this.discreteTotal / val);
+        const rem = this.discreteTotal % val;
+        this.showDivisibleToast(
+          `🍩 <strong>整除小幫手：</strong>${this.discreteTotal} 個甜甜圈若分 ${val} 組，每組 ${quo} 個會剩下 <strong>${rem} 個</strong>無法平分！已自動對齊至可整除的「<strong>${closest} 組</strong>」喔！`
+        );
+      } else {
+        this.hideDivisibleToast();
+      }
+
       this.discreteDen = closest;
       document.getElementById('explorer-discrete-den-val').innerText = `${closest} 組`;
 
@@ -1350,6 +1373,7 @@ const Explorer = {
         sliderDiscNum.value = this.discreteNum;
         document.getElementById('explorer-discrete-num-val').innerText = `${this.discreteNum} 組`;
       }
+      this.renderFactorChips();
       this.render();
     };
 
@@ -1358,6 +1382,7 @@ const Explorer = {
       const closest = this.getClosestFactor(parseInt(e.target.value), factors);
       sliderDiscDen.value = closest;
       this.discreteDen = closest;
+      this.renderFactorChips();
       this.render();
     };
 
@@ -1381,6 +1406,56 @@ const Explorer = {
     document.getElementById('btn-explorer-speak').onclick = () => {
       this.speakCurrentSetup();
     };
+  },
+
+  // 優化一：渲染可整除的因數組數導航膠囊列
+  renderFactorChips() {
+    const container = document.getElementById('explorer-factor-chips');
+    if (!container) return;
+    container.innerHTML = `<span class="factor-chips-label">✨ 可剛好平分：</span>`;
+    const factors = this.getFactors(this.discreteTotal);
+    const sliderDiscDen = document.getElementById('explorer-discrete-den');
+    const sliderDiscNum = document.getElementById('explorer-discrete-num');
+
+    factors.forEach(f => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'factor-chip' + (this.discreteDen === f ? ' active' : '');
+      chip.innerText = `${f} 組`;
+      chip.onclick = () => {
+        SoundManager.playClick();
+        this.discreteDen = f;
+        if (sliderDiscDen) sliderDiscDen.value = f;
+        document.getElementById('explorer-discrete-den-val').innerText = `${f} 組`;
+        if (sliderDiscNum) {
+          sliderDiscNum.max = f;
+          if (this.discreteNum > f) {
+            this.discreteNum = f;
+            sliderDiscNum.value = f;
+            document.getElementById('explorer-discrete-num-val').innerText = `${f} 組`;
+          }
+        }
+        this.hideDivisibleToast();
+        this.renderFactorChips();
+        this.render();
+      };
+      container.appendChild(chip);
+    });
+  },
+
+  showDivisibleToast(htmlText) {
+    const toast = document.getElementById('explorer-divisible-toast');
+    if (toast) {
+      toast.innerHTML = htmlText;
+      toast.style.display = 'block';
+    }
+  },
+
+  hideDivisibleToast() {
+    const toast = document.getElementById('explorer-divisible-toast');
+    if (toast) {
+      toast.style.display = 'none';
+    }
   },
 
   getFactors(n) {
@@ -1493,6 +1568,8 @@ const Explorer = {
       document.getElementById('explorer-discrete-den').value = this.discreteDen;
       document.getElementById('explorer-discrete-num').max = this.discreteDen;
       document.getElementById('explorer-discrete-num').value = this.discreteNum;
+      this.hideDivisibleToast();
+      this.renderFactorChips();
     }
   },
 
@@ -2404,6 +2481,21 @@ const Game3 = {
       // 右秤盤：目標等值分數 (已經成串包裝好的甜甜圈，直接顯示竹籤)
       SVGDrawer.drawDiscreteModel(svg, 240, modelRY_disc, this.leftFrac.num, this.leftFrac.den, this.correctVal, true, false);
     }
+
+    // 優化二：若天平發生顯著傾斜，於秤盤上方顯示輕重提示文字 (字型 >= 16px)
+    if (Math.abs(tiltOffset) >= 15) {
+      const isLeftHeavier = tiltOffset > 0;
+      const badgeText = SVGDrawer.createSVGNode("text", {
+        x: 140,
+        y: 32,
+        "text-anchor": "middle",
+        "font-size": "16",
+        "font-weight": "800",
+        fill: "#D32F2F"
+      });
+      badgeText.textContent = isLeftHeavier ? "↙️ 左盤變太大（變重下沉）！" : "↘️ 左盤變太小（變輕上浮）！";
+      svg.appendChild(badgeText);
+    }
   },
 
   renderPotions() {
@@ -2573,13 +2665,32 @@ const Game3 = {
       return;
     }
 
-    // 第一關判定：分子分母藥水必須相同！
+    const leftFracStr = TTSManager.fractionToText(this.leftFrac.num, this.leftFrac.den);
+    const rightFracStr = TTSManager.fractionToText(this.rightFrac.num, this.rightFrac.den);
+    const leftFracHTML = `<span class="math-fraction"><span class="num">${this.leftFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.leftFrac.den}</span></span>`;
+    const rightFracHTML = `<span class="math-fraction"><span class="num">${this.rightFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.rightFrac.den}</span></span>`;
+    const opWord = this.operator === '×' ? "乘以" : "除以";
+
+    // 計算學童調配後的左盤實際分子分母與數值
+    const studentNum = this.operator === '×'
+      ? (this.leftFrac.num * this.placedNumPotion)
+      : Math.round((this.leftFrac.num / this.placedNumPotion) * 10) / 10;
+    const studentDen = this.operator === '×'
+      ? (this.leftFrac.den * this.placedDenPotion)
+      : Math.round((this.leftFrac.den / this.placedDenPotion) * 10) / 10;
+    const studentVal = studentNum / studentDen;
+    const targetVal = this.rightFrac.num / this.rightFrac.den;
+    const studentFracHTML = `<span class="math-fraction"><span class="num">${studentNum}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${studentDen}</span></span>`;
+
+    // 第一關判定：分子分母藥水必須相同！（優化二：真實物理傾斜方向與反思對稱鷹架）
     if (this.placedNumPotion !== this.placedDenPotion) {
       SoundManager.playWrong();
       
-      // 天平猛烈傾斜 (例如傾斜 30px)
       const svg = document.getElementById('g3-svg-container').querySelector('svg');
-      this.drawScaleBalance(svg, 30);
+      // 根據真實比值決定左盤下沉 (+28) 或右盤下沉 (-28)
+      const isLeftHeavier = studentVal > targetVal;
+      const tiltOffset = isLeftHeavier ? 28 : -28;
+      this.drawScaleBalance(svg, tiltOffset);
 
       if (this.scoreStars > 1) {
         this.scoreStars--;
@@ -2589,9 +2700,14 @@ const Game3 = {
       feedback.className = "feedback-overlay wrong";
       feedback.style.display = "flex";
       fEmoji.innerText = "⚖️";
-      fMsg.innerHTML = `天平歪掉囉！<br>分子分母要乘/除相同的數！`;
 
-      TTSManager.speak("哎呀，天平歪掉囉！在分數的切細點或成串包裝中，分子和分母必須同時乘以、或者同時除以同一個數，大小才不會變喔！快把天平調整回來吧！");
+      if (isLeftHeavier) {
+        fMsg.innerHTML = `天平向左沉下去囉！<br>左盤變成 ${studentFracHTML}，比右盤 ${rightFracHTML} 還要大！<br>分子分母必須同時${opWord}相同的數喔！`;
+        TTSManager.speak(`哎呀，分子${opWord}${this.placedNumPotion}、分母卻${opWord}${this.placedDenPotion}，左盤變太大、比右盤重，天平向左沉下去囉！分子分母必須${opWord}同一個數才會平衡！`);
+      } else {
+        fMsg.innerHTML = `天平向右沉下去囉！<br>左盤變成 ${studentFracHTML}，比右盤 ${rightFracHTML} 還要小！<br>分子分母必須同時${opWord}相同的數喔！`;
+        TTSManager.speak(`哎呀，分子${opWord}${this.placedNumPotion}、分母卻${opWord}${this.placedDenPotion}，左盤變太小、比右盤輕，天平向右沉下去囉！分子分母必須${opWord}同一個數才會平衡！`);
+      }
       
       setTimeout(() => {
         feedback.style.display = "none";
@@ -2616,12 +2732,6 @@ const Game3 = {
         feedback.className = "feedback-overlay correct";
         feedback.style.display = "flex";
         fEmoji.innerText = "✨";
-        
-        const leftFracStr = TTSManager.fractionToText(this.leftFrac.num, this.leftFrac.den);
-        const rightFracStr = TTSManager.fractionToText(this.rightFrac.num, this.rightFrac.den);
-        const leftFracHTML = `<span class="math-fraction"><span class="num">${this.leftFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.leftFrac.den}</span></span>`;
-        const rightFracHTML = `<span class="math-fraction"><span class="num">${this.rightFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.rightFrac.den}</span></span>`;
-        const opWord = this.operator === '×' ? "乘以" : "除以";
 
         fMsg.innerHTML = `等值變換成功！<br>${leftFracHTML} 等於 ${rightFracHTML}`;
         
@@ -2640,9 +2750,9 @@ const Game3 = {
     } else {
       SoundManager.playWrong();
       
-      // 數值不對但分子分母相同：天平雖然平衡但數值算出來不是右邊那個分數，天平左右擺動後還是不對
+      // 數值不對但分子分母相同：天平雖然平衡但數值算出來不是右邊那個分數
       const svg = document.getElementById('g3-svg-container').querySelector('svg');
-      // 天平小幅晃動
+      // 天平小幅晃動後維持平衡
       this.drawScaleBalance(svg, 10);
       setTimeout(() => this.drawScaleBalance(svg, -10), 200);
       setTimeout(() => this.drawScaleBalance(svg, 0), 400);
@@ -2655,14 +2765,13 @@ const Game3 = {
       feedback.className = "feedback-overlay wrong";
       feedback.style.display = "flex";
       fEmoji.innerText = "🧪";
-      fMsg.innerHTML = `算式不成立喔！<br>再試試其他數值`;
+      fMsg.innerHTML = `天平雖然平衡，但算出的是 ${studentFracHTML}，<br>還不是右盤指定的 ${rightFracHTML} 喔！`;
 
-      const opWord = this.operator === '×' ? "乘以" : "除以";
-      TTSManager.speak(`雖然分子和分母都${opWord}了${this.placedNumPotion}，但是這樣算出來的分數，不等於右邊的${rightFracStr}喔。請再算算看！`);
+      TTSManager.speak(`雖然分子和分母都${opWord}了${this.placedNumPotion}，但是這樣算出來的分數，不等於右邊的${rightFracStr}喔。請換一瓶藥水試試看！`);
 
       setTimeout(() => {
         feedback.style.display = "none";
-      }, 3500);
+      }, 3800);
     }
   },
 
@@ -3958,6 +4067,8 @@ const AIGame = {
   aiCount: 0,
   combo: 0,
   maxCombo: 0,
+  resonanceCount: 0,
+  nextRoundResonanceBonus: 0,
   questionIndex: 0,
   currentQuestion: null,
   
@@ -3986,6 +4097,10 @@ const AIGame = {
       "嘖嘖，被你搶先蓋上貓咪金章了…不過好戲才正要開始呢！",
       "眼力挺靈敏的嘛！不過下一個格子我是不會讓給你的！",
       "可惡，我的連線計畫被你打亂了！"
+    ],
+    resonanceClaim: [
+      "哇！你連櫥窗甜點的等值密碼都看出來了，害我眼花撩亂慢了 2.5 秒！",
+      "太驚人了！竟然找出與答案等值的甜點格，本怪盜被閃耀金光晃到眼睛啦！"
     ],
     aiClaim: [
       "哈哈！這格美味的點心，我就不客氣地收下蓋上紫章囉！",
@@ -4057,6 +4172,8 @@ const AIGame = {
     this.aiCount = 0;
     this.combo = 0;
     this.maxCombo = 0;
+    this.resonanceCount = 0;
+    this.nextRoundResonanceBonus = 0;
     this.questionIndex = 0;
     this.hasClaimPending = false;
     this.isSafetyValveActive = false;
@@ -4077,10 +4194,14 @@ const AIGame = {
     // 重設 9 格櫥窗 UI
     const cells = document.querySelectorAll('.showcase-cell');
     cells.forEach((cell, idx) => {
-      cell.classList.remove('waiting-selection', 'bingo-cell');
+      cell.classList.remove('waiting-selection', 'bingo-cell', 'resonance-match');
       const stamp = document.getElementById(`stamp-${idx}`);
       if (stamp) {
         stamp.className = 'cell-stamp';
+      }
+      const resBadge = document.getElementById(`res-badge-${idx}`);
+      if (resBadge) {
+        resBadge.style.display = 'none';
       }
       // 點選格子佔領事件
       cell.onclick = () => {
@@ -4208,6 +4329,13 @@ const AIGame = {
     }
   },
 
+  // 輔助：檢查櫥窗第 idx 格甜點分數是否與題目正確答案等值
+  isEquivalentToPastry(idx, qCorrect) {
+    if (!qCorrect || !this.pastries[idx]) return false;
+    const p = this.pastries[idx];
+    return (p.num * qCorrect.den) === (p.den * qCorrect.num);
+  },
+
   // 4. 出題渲染與啟動倒數
   initQuestion() {
     if (this.isGameOver) return;
@@ -4215,8 +4343,12 @@ const AIGame = {
     this.hasClaimPending = false;
     this.isSafetyValveActive = false;
 
-    // 清理選格等待狀態
-    document.querySelectorAll('.showcase-cell').forEach(c => c.classList.remove('waiting-selection'));
+    // 清理選格等待與共鳴狀態
+    document.querySelectorAll('.showcase-cell').forEach((c, idx) => {
+      c.classList.remove('waiting-selection', 'resonance-match');
+      const rb = document.getElementById(`res-badge-${idx}`);
+      if (rb) rb.style.display = 'none';
+    });
     document.getElementById('ai-showcase-hint').innerText = "提示：答對題目後點選任一甜點蓋上金章！";
 
     // 更新題號
@@ -4272,6 +4404,12 @@ const AIGame = {
     const config = this.difficultyConfig[this.difficulty];
     let totalTime = config.minTime + Math.random() * (config.maxTime - config.minTime);
     
+    // 優化三：若上一題觸發「等值共鳴」，本回合怪盜額外延遲 +2.5 秒
+    if (this.nextRoundResonanceBonus > 0) {
+      totalTime += this.nextRoundResonanceBonus;
+      this.nextRoundResonanceBonus = 0;
+    }
+
     // 放水機制：學生落後 >= 2 格時，自動增加 +3.5 秒
     if (this.aiCount - this.playerCount >= 2) {
       totalTime += 3.5;
@@ -4344,19 +4482,33 @@ const AIGame = {
 
       // 進入蓋章階段
       this.hasClaimPending = true;
-      this.showToast('correct', '✨ 答對了！快點選左邊櫥窗的任一空格蓋上金章！');
-      document.getElementById('ai-showcase-hint').innerText = "👉 請點選任一發光的空白甜點格進行佔領！";
 
-      // 讓所有未佔領的格子產生呼吸閃爍光
+      // 讓所有未佔領的格子產生呼吸閃爍光，並偵測優化三「等值共鳴」格
+      let hasResonanceCell = false;
       this.board.forEach((owner, idx) => {
         if (owner === null) {
           const cell = document.querySelector(`.showcase-cell[data-index="${idx}"]`);
-          if (cell) cell.classList.add('waiting-selection');
+          if (cell) {
+            cell.classList.add('waiting-selection');
+            if (this.isEquivalentToPastry(idx, this.currentQuestion.correct)) {
+              hasResonanceCell = true;
+              cell.classList.add('resonance-match');
+              const rb = document.getElementById(`res-badge-${idx}`);
+              if (rb) rb.style.display = 'block';
+            }
+          }
         }
       });
 
-      // 語音報讀指引
-      TTSManager.speak("答對了！請在甜點櫥窗點選一格蓋上貓咪金章！");
+      if (hasResonanceCell) {
+        this.showToast('correct', '✨ 答對了！點選標有「✨ 等值共鳴」的甜點格可讓怪盜多暈眩 2.5 秒喔！');
+        document.getElementById('ai-showcase-hint').innerText = "🌟 發現【等值共鳴】甜點格！點選共鳴格可獲得怪盜延遲 +2.5 秒加成！";
+        TTSManager.speak("答對了！櫥窗裡有和答案等值的共鳴甜點格，選它可以讓怪盜多暈眩兩點五秒喔！");
+      } else {
+        this.showToast('correct', '✨ 答對了！快點選左邊櫥窗的任一空格蓋上金章！');
+        document.getElementById('ai-showcase-hint').innerText = "👉 請點選任一發光的空白甜點格進行佔領！";
+        TTSManager.speak("答對了！請在甜點櫥窗點選一格蓋上貓咪金章！");
+      }
 
     } else {
       // 答錯觸發【教學安全閥】！
@@ -4388,31 +4540,41 @@ const AIGame = {
       return;
     }
 
+    // 優化三：檢查是否選中「等值共鳴」甜點格
+    const isResonance = this.currentQuestion && this.isEquivalentToPastry(index, this.currentQuestion.correct);
+
     // 成功蓋章
     SoundManager.playStamp();
     this.board[index] = 'player';
     this.playerCount++;
     this.hasClaimPending = false;
 
-    // 更新格子視覺
-    const cell = document.querySelector(`.showcase-cell[data-index="${index}"]`);
-    if (cell) {
-      cell.classList.remove('waiting-selection');
-    }
+    // 清除所有格子的等待光芒與共鳴徽章
+    document.querySelectorAll('.showcase-cell').forEach((c, idx) => {
+      c.classList.remove('waiting-selection', 'resonance-match');
+      const rb = document.getElementById(`res-badge-${idx}`);
+      if (rb) rb.style.display = 'none';
+    });
+
     const stamp = document.getElementById(`stamp-${index}`);
     if (stamp) {
       stamp.className = 'cell-stamp active stamp-gold';
     }
 
-    // 清除其他格子的等待光芒
-    document.querySelectorAll('.showcase-cell').forEach(c => c.classList.remove('waiting-selection'));
-
     // 更新分數計數
     document.getElementById('ai-count-player').innerText = this.playerCount;
 
-    // 怪盜台詞
-    const claimQuote = this.quotes.playerClaim[Math.floor(Math.random() * this.quotes.playerClaim.length)];
-    this.setPhantomSpeech(claimQuote);
+    if (isResonance) {
+      this.resonanceCount++;
+      this.nextRoundResonanceBonus = 2.5;
+      SoundManager.playMagicSparkle();
+      const resQuote = this.quotes.resonanceClaim[Math.floor(Math.random() * this.quotes.resonanceClaim.length)];
+      this.setPhantomSpeech(resQuote);
+      this.showToast('info', '🌟 觸發【等值共鳴】！下回合怪盜思考延遲 +2.5 秒！');
+    } else {
+      const claimQuote = this.quotes.playerClaim[Math.floor(Math.random() * this.quotes.playerClaim.length)];
+      this.setPhantomSpeech(claimQuote);
+    }
 
     // 檢查連線
     const winResult = this.checkWin('player');
@@ -4424,7 +4586,7 @@ const AIGame = {
       // 繼續下一題
       setTimeout(() => {
         this.initQuestion();
-      }, 900);
+      }, 950);
     }
   },
 
@@ -4560,6 +4722,7 @@ const AIGame = {
         document.getElementById('result-text').innerHTML = `
           <strong>🐱 貓咪主廚成功搶先達成 3 格連線！</strong><br>
           佔領格數：${this.playerCount} 格 ${this.maxCombo >= 2 ? `(最高連對 ${this.maxCombo} 題 🔥)` : ''}<br>
+          ${this.resonanceCount > 0 ? `✨ 等值共鳴完美對位：${this.resonanceCount} 次<br>` : ''}
           怪盜格數：${this.aiCount} 格<br><br>
           你用精湛的等值分數敏捷度擊退了怪盜幻影甜點師，成功守護了皇家甜點櫥窗！
         `;
@@ -4579,7 +4742,7 @@ const AIGame = {
         document.getElementById('result-title').innerText = "差一點就連線了！";
         document.getElementById('result-text').innerHTML = `
           <strong>怪盜幻影甜點師搶先達成了 3 格連線！</strong><br>
-          你的佔領格數：${this.playerCount} 格<br>
+          你的佔領格數：${this.playerCount} 格 ${this.resonanceCount > 0 ? `(等值共鳴 ${this.resonanceCount} 次 ✨)` : ''}<br>
           怪盜佔領格數：${this.aiCount} 格<br><br>
           別氣餒，你已經掌握了等值分數的核心！調整策略、先搶佔中央核心，再來挑戰怪盜吧！
         `;
@@ -4626,7 +4789,7 @@ const AIGame = {
       document.getElementById('result-title').innerText = title;
       document.getElementById('result-text').innerHTML = `
         <strong>${msg}</strong><br><br>
-        <strong>🐱 貓咪主廚：</strong> ${this.playerCount} 格 ${this.maxCombo >= 2 ? `(最高連對 ${this.maxCombo} 題 🔥)` : ''}<br>
+        <strong>🐱 貓咪主廚：</strong> ${this.playerCount} 格 ${this.maxCombo >= 2 ? `(最高連對 ${this.maxCombo} 題 🔥)` : ''} ${this.resonanceCount > 0 ? `(等值共鳴 ${this.resonanceCount} 次 ✨)` : ''}<br>
         <strong>🎩 怪盜神偷：</strong> ${this.aiCount} 格
       `;
       App.showScreen('screen-result');

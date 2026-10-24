@@ -213,6 +213,8 @@
               <input type="range" id="explorer-discrete-den" class="range-slider" min="2" max="12" value="3" step="1">
               <div class="range-value-bubble" id="explorer-discrete-den-val">3 組</div>
             </div>
+            <div id="explorer-factor-chips" class="factor-chips-row"></div>
+            <div id="explorer-divisible-toast" class="divisible-hint-toast" style="display:none;"></div>
 
             <span class="label-title">3. 選擇拿走組數（分子）：</span>
             <div class="slider-wrapper">
@@ -718,57 +720,66 @@
           <div class="pastry-showcase-grid" id="pastry-showcase-grid">
             <!-- 9 個 cell 由 JS 動態渲染或靜態結構配合 -->
             <div class="showcase-cell" data-index="0">
+              <div class="resonance-badge" id="res-badge-0" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🍰</div>
               <div class="cell-pastry-name">草莓蛋糕</div>
-              <div class="cell-fraction-badge" id="cell-frac-0">1/2 盤</div>
+              <div class="cell-fraction-badge" id="cell-frac-0"><div class="math-fraction inline-frac"><span class="num">1</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">2</span></div> 盤</div>
               <div class="cell-stamp" id="stamp-0"></div>
             </div>
             <div class="showcase-cell" data-index="1">
+              <div class="resonance-badge" id="res-badge-1" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🍩</div>
               <div class="cell-pastry-name">巧克力圈</div>
-              <div class="cell-fraction-badge" id="cell-frac-1">2/4 盒</div>
+              <div class="cell-fraction-badge" id="cell-frac-1"><div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">4</span></div> 盒</div>
               <div class="cell-stamp" id="stamp-1"></div>
             </div>
             <div class="showcase-cell" data-index="2">
+              <div class="resonance-badge" id="res-badge-2" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🍮</div>
               <div class="cell-pastry-name">香草布丁</div>
-              <div class="cell-fraction-badge" id="cell-frac-2">3/6 杯</div>
+              <div class="cell-fraction-badge" id="cell-frac-2"><div class="math-fraction inline-frac"><span class="num">3</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">6</span></div> 杯</div>
               <div class="cell-stamp" id="stamp-2"></div>
             </div>
             <div class="showcase-cell" data-index="3">
+              <div class="resonance-badge" id="res-badge-3" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🍬</div>
               <div class="cell-pastry-name">馬卡龍</div>
-              <div class="cell-fraction-badge" id="cell-frac-3">1/3 罐</div>
+              <div class="cell-fraction-badge" id="cell-frac-3"><div class="math-fraction inline-frac"><span class="num">1</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">3</span></div> 罐</div>
               <div class="cell-stamp" id="stamp-3"></div>
             </div>
             <div class="showcase-cell center-cell" data-index="4">
+              <div class="resonance-badge" id="res-badge-4" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🧁</div>
               <div class="cell-pastry-name">藍莓杯子</div>
-              <div class="cell-fraction-badge" id="cell-frac-4">2/6 盤</div>
+              <div class="cell-fraction-badge" id="cell-frac-4"><div class="math-fraction inline-frac"><span class="num">2</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">6</span></div> 盤</div>
               <div class="cell-stamp" id="stamp-4"></div>
             </div>
             <div class="showcase-cell" data-index="5">
+              <div class="resonance-badge" id="res-badge-5" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🥞</div>
               <div class="cell-pastry-name">舒芙蕾鬆餅</div>
-              <div class="cell-fraction-badge" id="cell-frac-5">4/12 份</div>
+              <div class="cell-fraction-badge" id="cell-frac-5"><div class="math-fraction inline-frac"><span class="num">4</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">12</span></div> 份</div>
               <div class="cell-stamp" id="stamp-5"></div>
             </div>
             <div class="showcase-cell" data-index="6">
+              <div class="resonance-badge" id="res-badge-6" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🥧</div>
               <div class="cell-pastry-name">蘋果肉桂派</div>
-              <div class="cell-fraction-badge" id="cell-frac-6">3/4 塊</div>
+              <div class="cell-fraction-badge" id="cell-frac-6"><div class="math-fraction inline-frac"><span class="num">3</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">4</span></div> 塊</div>
               <div class="cell-stamp" id="stamp-6"></div>
             </div>
             <div class="showcase-cell" data-index="7">
+              <div class="resonance-badge" id="res-badge-7" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🍓</div>
               <div class="cell-pastry-name">草莓生乳塔</div>
-              <div class="cell-fraction-badge" id="cell-frac-7">6/8 盒</div>
+              <div class="cell-fraction-badge" id="cell-frac-7"><div class="math-fraction inline-frac"><span class="num">6</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">8</span></div> 盒</div>
               <div class="cell-stamp" id="stamp-7"></div>
             </div>
             <div class="showcase-cell" data-index="8">
+              <div class="resonance-badge" id="res-badge-8" style="display:none;">✨ 等值共鳴</div>
               <div class="cell-pastry-emoji">🍪</div>
               <div class="cell-pastry-name">燕麥曲奇</div>
-              <div class="cell-fraction-badge" id="cell-frac-8">9/12 罐</div>
+              <div class="cell-fraction-badge" id="cell-frac-8"><div class="math-fraction inline-frac"><span class="num">9</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">12</span></div> 罐</div>
               <div class="cell-stamp" id="stamp-8"></div>
             </div>
           </div>

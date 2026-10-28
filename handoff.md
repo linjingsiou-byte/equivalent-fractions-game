@@ -28,8 +28,8 @@
 - **Git 狀態**：本地修改檔案已完成覆核，待執行 git commit 與 GitHub push。
 
 ## ➡️ 下一步
-1. 將本次修復 commit 並 push 到 GitHub 遠端儲存庫。
-2. 邀請四年級課堂師生於大螢幕與平板實機試玩，收集操作體驗反饋。
+1. 邀請四年級課堂師生於大螢幕與平板實機試玩，收集操作體驗反饋。
+2. 若課堂有線上作業派發需求，可評估新增結算畫面「一鍵複製戰報證明」。
 3. 若換電腦且具備 Obsidian MCP 工具，可補建第三層級（L3）專案詳細工作流程筆記。
 
 ## ⚠️ 注意事項
@@ -38,6 +38,6 @@
 - 資料夾具有 `2026_四年級數學：等值分數` 目錄 Junction 軟連結，指向實體路徑 `2026_四年級下學期_數學：等值分數`，兩者同步相容。
 
 ## 🕐 最後更新
-- 時間：2026-10-28 22:30
+- 時間：2026-10-28 23:00
 - 更新者：Antigravity @ LAPTOP-C73KGKMS
-- Git status：待 commit & push（`css/style.css`, `js/app.js`, `handoff.md`）
+- Git push：✅ 已推（GitHub Repo: `linjingsiou-byte/equivalent-fractions-game`，Commit: `eea970b`）

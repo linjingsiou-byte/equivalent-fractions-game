@@ -228,6 +228,17 @@ const TTSManager = {
     return `${this.numberToChinese(den)}分之${this.numberToChinese(num)}`;
   },
 
+  // 將小數轉換為適合發音的中文 (例如 0.75 -> 零點七五, 0.375 -> 零點三七五, 1.5 -> 一點五)
+  decimalToChinese(val) {
+    const s = String(val);
+    const charMap = {
+      '0': '零', '1': '一', '2': '二', '3': '三', '4': '四',
+      '5': '五', '6': '六', '7': '七', '8': '八', '9': '九',
+      '.': '點'
+    };
+    return s.split('').map(c => charMap[c] || c).join('');
+  },
+
   numberToChinese(num) {
     const map = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "二十一", "二十二", "二十三", "二十四", "二十五", "二十六", "二十七", "二十八", "二十九", "三十"];
     return map[num] || num.toString();
@@ -1971,6 +1982,14 @@ const Game1 = {
         
         this.selectedPizzaCard = null;
       });
+
+      // 點選快速放置支援 (支援電子白板、觸控平板與點擊作答)
+      card.addEventListener('click', () => {
+        if (card.classList.contains('dragging')) return;
+        SoundManager.playSoftClick();
+        const idx = parseInt(card.dataset.idx);
+        this.checkAnswer(idx, card);
+      });
     });
 
     oven.ondrop = (e) => {
@@ -2175,7 +2194,7 @@ const Game2 = {
     const dividersArea = document.getElementById('g2-dividers');
     dividersArea.innerHTML = "";
     
-    const factors = [2, 3, 4, 6, 12];
+    const factors = this.totalCandies === 24 ? [2, 3, 4, 6, 8, 12] : [2, 3, 4, 6, 12];
     
     factors.forEach((f, idx) => {
       const btn = document.createElement('button');
@@ -2891,9 +2910,8 @@ const Game4 = {
     // 題目文字更新
     const decText = this.targetVal.toString();
     const targetFracHTML = `<span class="math-fraction"><span class="num">${this.targetFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.targetFrac.den}</span></span>`;
-    document.getElementById('g4-question-text').innerHTML = `請控制小兔子在數線上跳躍，讓牠停在與 <strong>${targetFracHTML}</strong>（等於 <strong>${decText}</strong>）等值的位置，開啟寶箱！`;
-
-    TTSManager.speak(`第${this.currentQuestion + 1}題：請控制小兔子跳躍，讓牠停在五分之幾或十分之幾與${this.targetFracText}等值的位置，寶箱就藏在零點${Math.round(this.targetVal * 10)}喔！`);
+    const decPronounce = TTSManager.decimalToChinese(decText);
+    TTSManager.speak(`第${this.currentQuestion + 1}題：請控制小兔子跳躍，讓牠停在與${this.targetFracText}等值的位置，寶箱就藏在${decPronounce}喔！`);
 
     this.renderLine();
 
@@ -2984,7 +3002,7 @@ const Game4 = {
           "font-size": "11",
           fill: "#8D6E63"
         });
-        subtext.textContent = v.toFixed(1);
+        subtext.textContent = (Math.round(v * 1000) / 1000).toString();
         svg.appendChild(subtext);
       }
     }
@@ -3027,19 +3045,42 @@ const Game4 = {
     });
     svg.appendChild(arrowMarker);
 
-    // 顯示兔子腳下刻度的分數
+    // 顯示兔子腳下刻度的分數 (符合 OMML 直式橫線分數規範)
     if (this.rabbitPos > 0.01) {
-      const currentFracText = SVGDrawer.createSVGNode("text", {
-        x: rabbitX, y: lineY + 60,
+      const num = Math.round(this.rabbitPos * this.lineDen);
+      const fracG = SVGDrawer.createSVGNode("g", {
+        id: "g4-rabbit-frac",
+        class: "math-fraction-svg",
+        transform: `translate(${rabbitX}, ${lineY + 44})`
+      });
+      // 分子
+      const numText = SVGDrawer.createSVGNode("text", {
+        x: 0, y: 10,
         "text-anchor": "middle",
         "font-weight": "bold",
-        "font-size": "14",
+        "font-size": "13",
         fill: "#E64A19"
       });
-      // 以 lineDen 為分母顯示分數
-      const num = Math.round(this.rabbitPos * this.lineDen);
-      currentFracText.textContent = `${num}/${this.lineDen}`;
-      svg.appendChild(currentFracText);
+      numText.textContent = num;
+      fracG.appendChild(numText);
+      // 分數橫線
+      const fracLine = SVGDrawer.createSVGNode("line", {
+        x1: -12, y1: 14, x2: 12, y2: 14,
+        stroke: "#E64A19",
+        "stroke-width": "1.5"
+      });
+      fracG.appendChild(fracLine);
+      // 分母
+      const denText = SVGDrawer.createSVGNode("text", {
+        x: 0, y: 27,
+        "text-anchor": "middle",
+        "font-weight": "bold",
+        "font-size": "13",
+        fill: "#E64A19"
+      });
+      denText.textContent = this.lineDen;
+      fracG.appendChild(denText);
+      svg.appendChild(fracG);
     }
   },
 
@@ -4249,8 +4290,8 @@ const AIGame = {
       const qData = basePool[Math.floor(Math.random() * basePool.length)];
       return {
         typeBadge: "🍕 連續量等值披薩",
-        promptText: "請找出與下方披薩盤等值的分數：",
-        targetHTML: `<span class="math-fraction"><span class="num">${qData.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${qData.den}</span></span>`,
+        promptText: "請找出與下方披薩分量等值的分數：",
+        targetHTML: `<span style="font-size:1.4rem;vertical-align:middle;margin-right:6px;">🍕</span><span class="math-fraction"><span class="num">${qData.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${qData.den}</span></span> 塊披薩`,
         correct: qData.eq,
         wrongs: qData.wrongs,
         hintText: `將分子分母同時乘上相同的數，大小完全不變喔！`

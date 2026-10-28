@@ -125,7 +125,7 @@ body {
   align-items: center;
   gap: 8px;
   font-family: var(--font-family);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
@@ -306,7 +306,7 @@ body {
 }
 
 .selector-label {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-text-muted);
 }
@@ -329,7 +329,7 @@ body {
   padding: 6px 4px;
   border-radius: 8px;
   font-family: var(--font-family);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -493,7 +493,7 @@ body {
   align-items: center;
   gap: 6px;
   font-family: var(--font-family);
-  font-size: 0.95rem;
+  font-size: 1rem;
   transition: all 0.2s ease;
 }
 
@@ -1230,7 +1230,7 @@ body {
   font-weight: 800;
 }
 .g4-step-card-label {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--color-text-muted);
 }
 
@@ -1460,7 +1460,7 @@ body {
   padding: 24px;
   border-top: 2px solid var(--color-brown-border);
   background: #FFFDF9;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--color-text-muted);
   display: flex;
   flex-direction: column;
@@ -1775,7 +1775,7 @@ body {
 }
 
 .guide-detail p {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--color-text);
   margin-bottom: 8px;
   line-height: 1.7;
@@ -1784,7 +1784,7 @@ body {
 .guide-detail ul {
   margin-left: 20px;
   margin-bottom: 12px;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--color-text);
 }
 
@@ -1798,7 +1798,7 @@ body {
   border-left: 4px solid var(--color-accent-blue);
   padding: 10px 14px;
   border-radius: 4px 12px 12px 4px;
-  font-size: 0.9rem !important;
+  font-size: 1rem !important;
   margin-top: 10px;
 }
 
@@ -1826,7 +1826,7 @@ body {
 
 .math-fraction.inline-frac {
   display: inline-table !important;
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   vertical-align: middle;
   margin: 0 4px !important;
   transform: translateY(-2px);
@@ -1995,7 +1995,7 @@ body {
   color: #8D4F00;
   border: 1.5px solid #FFA000;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 800;
   box-shadow: 0 1px 3px rgba(0,0,0,0.12);
   pointer-events: none;
@@ -2282,7 +2282,7 @@ body {
 }
 
 .diff-desc {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--color-text-muted);
 }
 
@@ -2479,11 +2479,11 @@ body {
 }
 
 .cell-fraction-badge {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #5D4037;
   background: #EFEBE9;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 8px;
   border: 1px solid #D7CCC8;
 }
@@ -2628,11 +2628,11 @@ body {
 }
 
 .safety-valve-badge {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   background: #FFD54F;
   color: #3E2723;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   display: inline-block;
   animation: blinkWarn 1.2s infinite;
@@ -2951,5 +2951,271 @@ body {
   border: 3px solid #FF6F00 !important;
   background: linear-gradient(145deg, #FFFDE7, #FFECB3) !important;
   box-shadow: 0 0 15px rgba(255, 179, 0, 0.65) !important;
+}
+
+/* ==========================================================================
+   17. 📱 全站響應式設計 (RWD Comprehensive Optimization)
+   ========================================================================== */
+
+/* 平板直向與大型手機 (<= 768px) */
+@media (max-width: 768px) {
+  .global-header {
+    padding: 12px 18px;
+  }
+  .header-logo .emoji-logo {
+    font-size: 1.8rem;
+  }
+  .header-logo .title-text {
+    font-size: 1.35rem;
+  }
+  .main-container {
+    padding: 16px;
+  }
+  .welcome-title {
+    font-size: 2.1rem;
+  }
+  .hero-character-container {
+    gap: 30px;
+  }
+  .floating-character {
+    font-size: 3.8rem;
+  }
+  .mode-selection {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .mode-card {
+    padding: 30px 20px;
+  }
+  .game-card-main {
+    padding: 20px 16px;
+  }
+  .g3-formula-board {
+    padding: 16px 20px;
+  }
+  .difficulty-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 手機直向與窄螢幕 (<= 600px) */
+@media (max-width: 600px) {
+  .global-header {
+    padding: 10px 12px;
+  }
+  .header-logo {
+    gap: 8px;
+  }
+  .header-logo .emoji-logo {
+    font-size: 1.6rem;
+  }
+  .header-logo .title-text {
+    font-size: 1.15rem;
+  }
+  .header-controls {
+    gap: 6px;
+  }
+  .control-btn {
+    padding: 6px 10px;
+    font-size: 1rem;
+  }
+  /* 在窄版手機上隱藏標頭控制按鈕文字，僅顯示生動圖示，徹底根除標頭溢出 */
+  .control-btn .btn-text {
+    display: none;
+  }
+  .main-container {
+    padding: 14px 10px;
+  }
+  .welcome-title {
+    font-size: 1.7rem;
+    margin-bottom: 10px;
+  }
+  .welcome-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 24px;
+  }
+  .hero-character-container {
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+  .floating-character {
+    font-size: 3rem;
+  }
+  .mode-selection {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .mode-card {
+    padding: 22px 14px;
+    border-radius: var(--radius-md);
+  }
+  .mode-card-icon {
+    font-size: 2.8rem;
+    width: 70px;
+    height: 70px;
+  }
+  .game-status-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .game-title-info {
+    font-size: 1.1rem;
+  }
+  .question-text-box {
+    font-size: 1.15rem;
+    padding: 12px 14px;
+  }
+  /* 關卡一：披薩配對 */
+  .g1-target-zone {
+    width: 190px;
+    height: 190px;
+  }
+  .g1-target-svg-wrap {
+    width: 135px;
+    height: 135px;
+  }
+  .g1-tray {
+    padding: 10px;
+    gap: 12px;
+  }
+  .g1-pizza-card {
+    padding: 8px;
+  }
+  .g1-pizza-svg-wrap {
+    width: 90px;
+    height: 90px;
+  }
+  /* 關卡二：甜甜圈包裝 */
+  .g2-box-container {
+    padding: 12px;
+    min-height: 180px;
+  }
+  .g2-candy-grid-svg {
+    height: 160px;
+  }
+  /* 關卡三：鍊金天平 */
+  .g3-formula-board {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .g3-fraction-block {
+    font-size: 1.7rem;
+  }
+  .g3-alchemy-fraction-block {
+    font-size: 1.4rem;
+    padding: 6px 12px;
+  }
+  .g3-drop-slot {
+    width: 48px;
+    height: 48px;
+    font-size: 1.15rem;
+  }
+  .g3-potion-tray {
+    padding: 10px;
+    gap: 10px;
+  }
+  .g3-potion {
+    width: 60px;
+    height: 80px;
+  }
+  /* 關卡四：數線跳躍 */
+  .g4-canvas-container {
+    height: 150px;
+  }
+  .g4-step-card {
+    padding: 10px 16px;
+    min-width: 80px;
+  }
+  /* 雙人同屏對決 */
+  .pvp-target-box {
+    padding: 10px 16px;
+  }
+  .pvp-player-panel {
+    padding: 14px 10px;
+  }
+  .pvp-opt-btn {
+    padding: 12px 8px;
+  }
+  /* 單人 AI 挑戰賽 */
+  .ai-versus-banner {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 12px;
+    align-items: center;
+  }
+  .versus-fighter {
+    width: 100%;
+    justify-content: center;
+  }
+  .versus-badge {
+    font-size: 1.4rem;
+    padding: 4px 14px;
+  }
+  .pastry-showcase-wrapper {
+    padding: 12px;
+  }
+  .pastry-showcase-grid {
+    gap: 8px;
+  }
+  .showcase-cell {
+    min-height: 105px;
+    padding: 8px 4px;
+  }
+  .cell-emoji {
+    font-size: 2.2rem;
+  }
+  .ai-game-interaction-panel {
+    padding: 16px 12px;
+  }
+  .ai-options-grid {
+    gap: 10px;
+  }
+  .ai-opt-btn {
+    padding: 12px 8px;
+  }
+  /* 彈窗響應式 */
+  .modal-box {
+    padding: 16px;
+    width: 95%;
+    max-height: 90vh;
+  }
+}
+
+/* 極窄版手機 (<= 380px，如 iPhone SE1 / 320px) */
+@media (max-width: 380px) {
+  .global-header {
+    padding: 8px 8px;
+  }
+  .header-logo .emoji-logo {
+    font-size: 1.4rem;
+  }
+  .header-logo .title-text {
+    font-size: 1.05rem;
+  }
+  .main-container {
+    padding: 10px 6px;
+  }
+  .mode-card {
+    padding: 18px 10px;
+  }
+  .g1-target-zone {
+    width: 160px;
+    height: 160px;
+  }
+  .g1-target-svg-wrap {
+    width: 115px;
+    height: 115px;
+  }
+  .showcase-cell {
+    min-height: 95px;
+    padding: 6px 2px;
+  }
+  .cell-emoji {
+    font-size: 1.8rem;
+  }
+  .g3-alchemy-fraction-block .bar {
+    width: 90px;
+  }
 }
 

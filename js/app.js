@@ -2838,7 +2838,7 @@ const Game4 = {
     const pool = [
       { target: 0.6, frac: { num: 3, den: 5 }, text: "五分之三", den: 10, steps: [{ val: 0.2, num: 1, den: 5 }, { val: 0.1, num: 1, den: 10 }, { val: 0.4, num: 2, den: 5 }] },
       { target: 0.8, frac: { num: 4, den: 5 }, text: "五分之四", den: 10, steps: [{ val: 0.2, num: 1, den: 5 }, { val: 0.1, num: 1, den: 10 }, { val: 0.4, num: 2, den: 5 }] },
-      { target: 0.5, frac: { num: 1, den: 2 }, text: "二分之一", den: 10, steps: [{ val: 0.1, num: 1, den: 10 }, { val: 0.25, num: 1, den: 4 }, { val: 0.5, num: 2, den: 4 }] },
+      { target: 0.5, frac: { num: 1, den: 2 }, text: "二分之一", den: 10, steps: [{ val: 0.1, num: 1, den: 10 }, { val: 0.2, num: 1, den: 5 }, { val: 0.5, num: 5, den: 10 }] },
       { target: 0.75, frac: { num: 3, den: 4 }, text: "四分之三", den: 8, steps: [{ val: 0.25, num: 1, den: 4 }, { val: 0.125, num: 1, den: 8 }, { val: 0.375, num: 3, den: 8 }] },
       { target: 0.4, frac: { num: 2, den: 5 }, text: "五分之二", den: 10, steps: [{ val: 0.2, num: 1, den: 5 }, { val: 0.1, num: 1, den: 10 }, { val: 0.4, num: 2, den: 5 }] },
       { target: 0.2, frac: { num: 1, den: 5 }, text: "五分之一", den: 10, steps: [{ val: 0.2, num: 1, den: 5 }, { val: 0.1, num: 1, den: 10 }, { val: 0.4, num: 2, den: 5 }] },
@@ -2910,6 +2910,7 @@ const Game4 = {
     // 題目文字更新
     const decText = this.targetVal.toString();
     const targetFracHTML = `<span class="math-fraction"><span class="num">${this.targetFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.targetFrac.den}</span></span>`;
+    document.getElementById('g4-question-text').innerHTML = `請控制小兔子在數線上跳躍，讓牠停在與 <strong>${targetFracHTML}</strong>（等於 <strong>${decText}</strong>）等值的位置，開啟寶箱！`;
     const decPronounce = TTSManager.decimalToChinese(decText);
     TTSManager.speak(`第${this.currentQuestion + 1}題：請控制小兔子跳躍，讓牠停在與${this.targetFracText}等值的位置，寶箱就藏在${decPronounce}喔！`);
 

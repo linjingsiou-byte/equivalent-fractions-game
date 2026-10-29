@@ -30,6 +30,6 @@
 - 資料夾具有 `2026_四年級數學：等值分數` 目錄 Junction 軟連結，指向實體路徑 `2026_四年級下學期_數學：等值分數`，兩者同步相容。
 
 ## 🕐 最後更新
-- 時間：2026-10-29 22:26
+- 時間：2026-10-29 22:30
 - 更新者：Antigravity @ LAPTOP-C73KGKMS
-- Git push：✅ 已推（GitHub Repo: `linjingsiou-byte/equivalent-fractions-game`，Commit: `121e696`）
+- Git push：✅ 已推（GitHub Repo: `linjingsiou-byte/equivalent-fractions-game`，Commit: `3a8322c`）

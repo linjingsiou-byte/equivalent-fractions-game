@@ -202,6 +202,25 @@ const SoundManager = {
         osc.stop(start + 0.45);
       });
     } catch (e) {}
+  },
+
+  // 通用單音合成輔助方法 (Generic Tone Generator)
+  playTone(freq = 440, duration = 0.1, type = 'sine') {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      osc.start(now);
+      osc.stop(now + duration);
+    } catch (e) {}
   }
 };
 
@@ -209,11 +228,23 @@ const SoundManager = {
 const TTSManager = {
   enabled: false,
 
+  // 文字清洗：過濾 HTML 標籤與 Emoji，確保報讀清晰
+  cleanSpeechText(text) {
+    if (!text) return '';
+    return text
+      .replace(/<[^>]*>/g, '')
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
+
   speak(text) {
     if (!this.enabled) return;
     try {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const cleaned = this.cleanSpeechText(text);
+      if (!cleaned) return;
+      const utterance = new SpeechSynthesisUtterance(cleaned);
       utterance.lang = 'zh-TW';
       utterance.rate = 1.0;
       utterance.pitch = 1.1; // 稍微高一點，聽起來更活潑
@@ -967,6 +998,35 @@ const SVGDrawer = {
 // 5. 畫面切換與核心應用程序邏輯 (Application State)
 const App = {
   currentScreen: 'screen-welcome',
+  pendingTimeouts: [],
+
+  scheduleTimeout(fn, delay) {
+    const id = setTimeout(() => {
+      this.pendingTimeouts = this.pendingTimeouts.filter(t => t !== id);
+      fn();
+    }, delay);
+    this.pendingTimeouts.push(id);
+    return id;
+  },
+
+  clearTimeout(id) {
+    clearTimeout(id);
+    this.pendingTimeouts = this.pendingTimeouts.filter(t => t !== id);
+  },
+
+  clearAllTimers() {
+    this.pendingTimeouts.forEach(id => clearTimeout(id));
+    this.pendingTimeouts = [];
+    if (typeof AIGame !== 'undefined' && AIGame.stopAITimer) {
+      AIGame.stopAITimer();
+    }
+    if (typeof PvPGame !== 'undefined' && PvPGame.clearBattleThinkingTimer) {
+      PvPGame.clearBattleThinkingTimer();
+    }
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  },
   gameMode: 'single', // 'single' | 'pvp'
   autoRead: false,
 
@@ -1068,6 +1128,18 @@ const App = {
         }
       });
     }
+
+    // 支援 Escape 快捷鍵關閉魔法秘笈彈窗
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        const modalGuide = document.getElementById('modal-secret-guide');
+        if (modalGuide && modalGuide.classList.contains('active')) {
+          SoundManager.playClick();
+          modalGuide.classList.remove('active');
+          if (window.speechSynthesis) window.speechSynthesis.cancel();
+        }
+      }
+    });
 
     // 返回按鈕
     document.getElementById('btn-back-to-welcome').addEventListener('click', () => {
@@ -1205,6 +1277,9 @@ const App = {
   },
 
   showScreen(screenId) {
+    // 切換畫面時，全面清除所有進行中的排程計時器、AI計時器與對決讀題思考計時器，杜絕幽靈跳題與結算彈窗
+    this.clearAllTimers();
+
     // 隱藏所有
     document.querySelectorAll('.game-screen').forEach(screen => {
       screen.classList.remove('active');
@@ -2036,7 +2111,7 @@ const Game1 = {
 
       TTSManager.speak(`答對了！${targetFracStr}等於${optFracStr}，大小完全一樣多喔！`);
 
-      setTimeout(() => {
+      App.scheduleTimeout(() => {
         this.currentQuestion++;
         if (this.currentQuestion >= this.totalQuestions) {
           this.endGame();
@@ -2282,7 +2357,7 @@ const Game2 = {
       
       TTSManager.speak(`打包正確，出貨成功！您將${this.totalCandies === 24 ? '二十四' : '十二'}個甜甜圈平分成${this.playerDen}組，選了${this.selectedGroups.length}組，也就是${playerFracText}盒，剛好是${playerPickedCount}個！和顧客要求的${reqText}盒大小一樣多喔！`);
 
-      setTimeout(() => {
+      App.scheduleTimeout(() => {
         this.currentQuestion++;
         if (this.currentQuestion >= this.totalQuestions) {
           this.endGame();
@@ -2756,7 +2831,7 @@ const Game3 = {
         
         TTSManager.speak(`等值變換成功！${leftFracStr}的分子分母同時${opWord}${this.correctVal}，就得到了等值分數${rightFracStr}。天平非常平衡！`);
 
-        setTimeout(() => {
+        App.scheduleTimeout(() => {
           this.currentQuestion++;
           if (this.currentQuestion >= this.totalQuestions) {
             this.endGame();
@@ -3131,7 +3206,7 @@ const Game4 = {
       TTSManager.speak(`太棒了！小兔子跳到了十分之${Math.round(this.targetVal * 10)}，也就是${this.targetFracText}的位置！成功打開寶藏盒！`);
 
       // 寶箱打開動畫 (SVG 更換為開箱 🔓)
-      setTimeout(() => {
+      App.scheduleTimeout(() => {
         this.currentQuestion++;
         if (this.currentQuestion >= this.totalQuestions) {
           this.endGame();
@@ -3976,7 +4051,7 @@ const PvPGame = {
       otherFeedback.style.display = "flex";
       otherFeedback.innerHTML = "<span class='feedback-emoji' style='font-size:2.5rem;'>⏱️ 被搶先了！</span>";
 
-      setTimeout(() => {
+      App.scheduleTimeout(() => {
         this.currentQuestion++;
         if (this.currentQuestion >= this.totalQuestions) {
           this.endGame();
@@ -4357,7 +4432,8 @@ const AIGame = {
         { dec: "0.3", num: 3, den: 10, eq: { num: 3, den: 10 }, wrongs: [{ num: 1, den: 3 }, { num: 3, den: 100 }, { num: 6, den: 10 }] },
         { dec: "0.7", num: 7, den: 10, eq: { num: 7, den: 10 }, wrongs: [{ num: 7, den: 100 }, { num: 1, den: 7 }, { num: 3, den: 10 }] },
         { dec: "0.4", num: 2, den: 5, eq: { num: 4, den: 10 }, wrongs: [{ num: 2, den: 10 }, { num: 4, den: 5 }, { num: 1, den: 4 }] },
-        { dec: "0.6", num: 3, den: 5, eq: { num: 6, den: 10 }, wrongs: [{ num: 3, den: 10 }, { num: 6, den: 5 }, { num: 1, den: 6 }] }
+        { dec: "0.6", num: 3, den: 5, eq: { num: 6, den: 10 }, wrongs: [{ num: 3, den: 10 }, { num: 6, den: 5 }, { num: 1, den: 6 }] },
+        { dec: "0.75", num: 3, den: 4, eq: { num: 75, den: 100 }, wrongs: [{ num: 7, den: 10 }, { num: 3, den: 40 }, { num: 75, den: 10 }] }
       ];
       const item = decPool[Math.floor(Math.random() * decPool.length)];
       return {
@@ -4626,7 +4702,7 @@ const AIGame = {
       this.triggerBoardFullEnd();
     } else {
       // 繼續下一題
-      setTimeout(() => {
+      App.scheduleTimeout(() => {
         this.initQuestion();
       }, 950);
     }
@@ -4668,7 +4744,7 @@ const AIGame = {
       this.triggerBoardFullEnd();
     } else {
       // 繼續下一題
-      setTimeout(() => {
+      App.scheduleTimeout(() => {
         this.initQuestion();
       }, 1200);
     }

@@ -32,7 +32,7 @@
   --radius-lg: 32px;
   
   /* 字型設定 */
-  --font-family: 'Fredoka', 'Quicksand', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+  --font-family: 'Fredoka', 'Quicksand', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, -apple-system, sans-serif;
 }
 
 /* 2. 基礎重設與排版 */

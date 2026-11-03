@@ -3884,16 +3884,35 @@ const PvPGame = {
     if (feedbackOverlay) {
       feedbackOverlay.className = "pvp-feedback-overlay wrong";
       feedbackOverlay.style.display = "flex";
-      feedbackOverlay.innerHTML = "<span class='feedback-emoji' style='font-size:2rem;'>⏳ 先思考！倒數後開放作答</span>";
+      feedbackOverlay.innerHTML = "<span class='feedback-emoji' style='font-size:1.6rem;'>⏳ 請先讀題思考喔！倒數結束後才開放作答！</span>";
       setTimeout(() => {
         if (this.isBattleThinkingPhase) {
           feedbackOverlay.style.display = "none";
         }
-      }, 900);
+      }, 1500);
     }
   },
 
+  bindPanelInterceptors() {
+    ['p1', 'p2'].forEach(player => {
+      const panel = document.getElementById(`pvp-panel-${player}`);
+      if (!panel || panel._pointerInterceptBound) return;
+      panel._pointerInterceptBound = true;
+      // 思考期防偷跑攔截 (Capture 模式)
+      panel.addEventListener('pointerdown', (e) => {
+        if (this.isBattleThinkingPhase) {
+          if (e.target.closest('.pvp-opt-btn, .pvp-game-arena')) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.triggerBattleSideShake(player);
+          }
+        }
+      }, true);
+    });
+  },
+
   bindKeyboard() {
+    this.bindPanelInterceptors();
     if (this.keyListenerBound) return;
     this.keyListenerBound = true;
 
@@ -4021,6 +4040,8 @@ const PvPGame = {
       this.questionActive = false; // 該題搶答結束
       SoundManager.playCorrect();
       
+      const playerName = player === 'p1' ? '🐱 貓咪小廚神' : '🐰 兔子小廚神';
+
       if (player === 'p1') {
         this.scoreP1 += 10;
         this.comboP1++;
@@ -4035,6 +4056,12 @@ const PvPGame = {
         document.getElementById('pvp-score-p2').innerText = `得分: ${this.scoreP2}`;
       }
       this.updateComboUI();
+
+      // 同步更新頂部對戰狀態列 (手冊標準)
+      const battleStatusText = document.getElementById('battle-status-text');
+      if (battleStatusText) {
+        battleStatusText.innerHTML = `🎉 <strong>${playerName} 搶先答對！+10 分 🎯</strong>`;
+      }
 
       // 該玩家亮綠燈
       feedbackOverlay.className = "pvp-feedback-overlay correct";

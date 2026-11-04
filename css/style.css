@@ -1924,16 +1924,16 @@ body {
 .pvp-player-panel.cooling::after {
   content: "⏳ 思考時間・鎖定中";
   position: absolute;
-  top: 12px;
+  top: -15px;
   right: 16px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(34, 34, 34, 0.9);
   color: #ffd166;
   font-size: 0.95rem; /* 大於 12pt */
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 12px;
   pointer-events: none;
-  border: 1px solid rgba(255, 209, 102, 0.4);
+  border: 1px solid rgba(255, 209, 102, 0.55);
   z-index: 10;
 }
 

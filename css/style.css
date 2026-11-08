@@ -857,19 +857,41 @@ body {
 /* ==========================================================================
    9. 關卡一專屬：等值披薩大配對 (Continuous Equivalent)
    ========================================================================== */
+#screen-game-1 .single-game-layout {
+  max-width: 820px;
+  gap: 12px;
+}
+
+#screen-game-1 .game-card-main {
+  padding: 16px 20px 20px 20px;
+  gap: 12px;
+}
+
+#screen-game-1 .game-status-bar {
+  margin-bottom: 6px;
+  padding-bottom: 8px;
+}
+
+#screen-game-1 .question-text-box {
+  padding: 10px 18px;
+  margin-bottom: 4px;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
 .g1-layout {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
   width: 100%;
 }
 
-/* 配對目標魔法爐 */
+/* 配對目標魔法爐 (RWD 精巧尺寸) */
 .g1-target-zone {
-  width: 220px;
-  height: 220px;
-  border: 4px dashed var(--color-accent-pink);
+  width: 180px;
+  height: 180px;
+  border: 3.5px dashed var(--color-accent-pink);
   border-radius: 50%;
   background-color: #FFF8F8;
   display: flex;
@@ -882,54 +904,90 @@ body {
 }
 .g1-target-zone.drag-hover {
   background-color: #FFEBEE;
-  transform: scale(1.05);
+  transform: scale(1.04);
   border-color: var(--color-accent-pink-hover);
   border-style: solid;
 }
 .g1-target-label {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: var(--color-text-muted);
   font-weight: 700;
   position: absolute;
-  bottom: 20px;
+  bottom: 10px;
+  transition: all 0.25s ease;
+  pointer-events: none;
 }
+
+/* 比對中的膠囊徽章造型 (對齊使用者預期設計) */
+.g1-target-label.as-pill {
+  bottom: -13px;
+  background: #FFF9C4;
+  border: 2px solid #FBC02D;
+  border-radius: 20px;
+  padding: 3px 14px;
+  font-size: 0.95rem;
+  color: #5D4037;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  white-space: nowrap;
+  animation: popScale 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
 .g1-target-svg-wrap {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 可選披薩托盤 */
+/* 半透明重疊比對鷹架橫條 (字型 >= 12pt / 16px, OMML 直式橫線分數) */
+.g1-scaffold-banner {
+  width: 100%;
+  background: #FFFDE7;
+  border: 2px solid #FFD54F;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 1.05rem; /* ~16.8px >= 12pt */
+  color: #BF360C;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.6;
+  box-shadow: 0 2px 8px rgba(255, 183, 77, 0.15);
+  animation: fadeIn 0.3s forwards;
+  box-sizing: border-box;
+}
+
+/* 可選披薩托盤 (RWD 一屏流適配) */
 .g1-tray {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   justify-content: center;
-  flex-wrap: wrap;
   width: 100%;
-  padding: 16px;
+  padding: 12px 16px;
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   border: 2px solid var(--color-brown-border);
+  box-sizing: border-box;
 }
 .g1-pizza-card {
   background: white;
   border: 2px solid var(--color-brown-border);
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: 8px 12px;
   cursor: grab;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   user-select: none;
   touch-action: none;
 }
 .g1-pizza-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
   border-color: var(--color-accent-blue);
 }
@@ -937,16 +995,68 @@ body {
   cursor: grabbing;
 }
 .g1-pizza-svg-wrap {
-  width: 110px;
-  height: 110px;
+  width: 90px;
+  height: 90px;
 }
 .g1-pizza-fraction {
-  font-size: 1.15rem;
+  font-size: 1.15rem; /* >= 12pt */
   font-weight: 700;
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1;
+}
+
+/* 筆電高度 (<= 768px) 響應式優化，保證 100% 一屏流不滾動 */
+@media (max-height: 768px) {
+  .global-header {
+    padding: 8px 20px;
+  }
+  .main-container {
+    padding: 8px 16px;
+  }
+  #screen-game-1 .single-game-layout {
+    gap: 8px;
+  }
+  #screen-game-1 .game-card-main {
+    padding: 10px 16px 12px 16px;
+    gap: 8px;
+  }
+  #screen-game-1 .question-text-box {
+    padding: 8px 14px;
+    font-size: 1.05rem;
+    margin-bottom: 2px;
+  }
+  .g1-layout {
+    gap: 8px;
+  }
+  .g1-target-zone {
+    width: 155px;
+    height: 155px;
+  }
+  .g1-target-svg-wrap {
+    width: 125px;
+    height: 125px;
+  }
+  .g1-pizza-svg-wrap {
+    width: 75px;
+    height: 75px;
+  }
+  .g1-tray {
+    padding: 6px 10px;
+    gap: 10px;
+  }
+  .g1-pizza-card {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  .g1-scaffold-banner {
+    padding: 6px 12px;
+    font-size: 0.95rem; /* ~15.2px >= 12pt */
+  }
+  .screen-footer {
+    margin-top: 2px;
+  }
 }
 
 /* ==========================================================================

@@ -1930,7 +1930,35 @@ const Game1 = {
     document.getElementById('g1-stars').innerText = starStr;
   },
 
+  resetTimeout: null,
+
+  resetOvenState() {
+    if (this.resetTimeout) {
+      clearTimeout(this.resetTimeout);
+      this.resetTimeout = null;
+    }
+    const targetLabel = document.getElementById('g1-target-label');
+    if (targetLabel) {
+      targetLabel.innerText = "放入等值披薩";
+      targetLabel.classList.remove('as-pill');
+    }
+    const scaffoldBanner = document.getElementById('g1-scaffold-banner');
+    if (scaffoldBanner) {
+      scaffoldBanner.style.display = "none";
+      scaffoldBanner.innerHTML = "";
+    }
+    const targetSvgWrap = document.getElementById('g1-target-svg');
+    if (targetSvgWrap) {
+      const tSvg = targetSvgWrap.querySelector('svg');
+      if (tSvg) {
+        tSvg.innerHTML = "";
+        SVGDrawer.drawCircleFraction(tSvg, this.targetFrac.den, this.targetFrac.num, "#FFD54F", "#FAFAFA");
+      }
+    }
+  },
+
   initQuestion() {
+    this.resetOvenState();
     this.updateStarsDisplay();
     document.getElementById('g1-feedback').style.display = "none";
 
@@ -2106,6 +2134,9 @@ const Game1 = {
       SoundManager.playCorrect();
       Confetti.start();
       
+      // 清除可能殘留的鷹架橫條與標籤
+      this.resetOvenState();
+
       // 融合動畫：魔法爐披薩轉為正確的切割細份數
       const targetSvgWrap = document.getElementById('g1-target-svg');
       targetSvgWrap.innerHTML = "";
@@ -2146,7 +2177,12 @@ const Game1 = {
         this.updateStarsDisplay();
       }
 
-      // 對比重疊動畫：魔法爐中以半透明顯示兩個分數的重疊
+      // 清除先前的排程
+      if (this.resetTimeout) {
+        clearTimeout(this.resetTimeout);
+      }
+
+      // 對比重疊動畫：魔法爐中以高對比半透明清晰顯示原分數與錯誤分數重疊 (0% 遮蔽率，圓盤 100% 裸露)
       const targetSvgWrap = document.getElementById('g1-target-svg');
       targetSvgWrap.innerHTML = "";
       const targetSvg = SVGDrawer.createSVGNode("svg", {
@@ -2154,9 +2190,10 @@ const Game1 = {
       });
       targetSvgWrap.appendChild(targetSvg);
       
-      // 畫底盤目標（半透明黃）
-      SVGDrawer.drawCircleFraction(targetSvg, this.targetFrac.den, this.targetFrac.num, "rgba(255, 213, 79, 0.5)", "#FAFAFA");
-      // 畫拖入的錯誤分數（半透明紅）
+      // 1. 底盤目標：使用清亮金黃色 (#FFD54F) 繪製
+      SVGDrawer.drawCircleFraction(targetSvg, this.targetFrac.den, this.targetFrac.num, "#FFD54F", "#FAFAFA");
+
+      // 2. 疊上去的錯誤分數：使用半透明珊瑚粉紅 (rgba(255, 112, 67, 0.52))，帶鮮明深橘紅輪廓
       for (let i = 0; i < opt.num; i++) {
         const anglePerPart = 360 / opt.den;
         const startAngle = -90 + i * anglePerPart;
@@ -2164,7 +2201,7 @@ const Game1 = {
         
         const rad1 = (startAngle * Math.PI) / 180;
         const rad2 = (endAngle * Math.PI) / 180;
-        const cx=140, cy=140, r=110;
+        const cx = 140, cy = 140, r = 110;
         
         const x1 = cx + r * Math.cos(rad1);
         const y1 = cy + r * Math.sin(rad1);
@@ -2174,30 +2211,54 @@ const Game1 = {
         
         const sector = SVGDrawer.createSVGNode("path", {
           d: pathData,
-          fill: "rgba(255, 112, 67, 0.4)",
+          fill: "rgba(255, 112, 67, 0.52)",
           stroke: "#D84315",
-          "stroke-width": 1.5
+          "stroke-width": 2
         });
         targetSvg.appendChild(sector);
       }
 
-      feedback.className = "feedback-overlay wrong";
-      feedback.style.display = "flex";
-      fEmoji.innerText = "🔍";
-      fMsg.innerHTML = `大小不一樣喔！<br>疊在一起比比看！`;
+      // 3. 更新魔法爐正下方的標籤為膠囊徽章「🔍 魔法爐半透明疊合比對中」
+      const targetLabel = document.getElementById('g1-target-label');
+      if (targetLabel) {
+        targetLabel.innerText = "🔍 魔法爐半透明疊合比對中";
+        targetLabel.classList.add('as-pill');
+      }
+
+      // 4. 計算面積差異並動態組合「半透明重疊比對鷹架」提示橫條
+      const scaffoldBanner = document.getElementById('g1-scaffold-banner');
+      if (scaffoldBanner) {
+        const optVal = opt.num / opt.den;
+        const targetVal = this.targetFrac.num / this.targetFrac.den;
+        const diffWord = optVal > targetVal ? "還多出一塊" : "還少了一塊";
+
+        // 找出等值的正確答案及其在托盤中的方位 (左邊 / 中間 / 右邊)
+        const correctIndex = this.options.findIndex(o => o.num * this.targetFrac.den === o.den * this.targetFrac.num);
+        let posWord = "";
+        if (correctIndex === 0) posWord = "左邊";
+        else if (correctIndex === this.options.length - 1) posWord = "右邊";
+        else posWord = "中間";
+
+        const correctOpt = this.options[correctIndex];
+        const correctFracHTML = correctOpt ? `<span class="math-fraction inline-frac"><span class="num">${correctOpt.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${correctOpt.den}</span></span>` : "";
+        const optFracHTML = `<span class="math-fraction inline-frac"><span class="num">${opt.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${opt.den}</span></span>`;
+        const targetFracHTML = `<span class="math-fraction inline-frac"><span class="num">${this.targetFrac.num}</span><span class="bar-row"><span class="bar-cell"></span></span><span class="den">${this.targetFrac.den}</span></span>`;
+
+        scaffoldBanner.innerHTML = `💡 <strong>半透明重疊比對鷹架</strong>：把 ${optFracHTML} 疊到 ${targetFracHTML} 上，一眼看出比黃色 ${targetFracHTML} ${diffWord}！${correctOpt ? `請改選${posWord}等值的 ${correctFracHTML} 披薩！` : '請再試試其他披薩！'}`;
+        scaffoldBanner.style.display = "block";
+      }
+
+      // 5. 確保全螢幕遮罩維持隱藏，絕不遮蔽圓盤與托盤視野！
+      feedback.style.display = "none";
 
       const targetFracStr = TTSManager.fractionToText(this.targetFrac.num, this.targetFrac.den);
       const optFracStr = TTSManager.fractionToText(opt.num, opt.den);
-      TTSManager.speak(`哎呀，${targetFracStr}和${optFracStr}的大小不一樣多喔！把牠們疊在一起，你可以看出差別。再試試看別的披薩！`);
+      TTSManager.speak(`大小不一樣喔！把${optFracStr}和${targetFracStr}疊在一起，可以看出差別。再試試看別的披薩！`);
 
-      setTimeout(() => {
-        feedback.style.display = "none";
-        // 恢復原狀
-        const tSvg = targetSvgWrap.querySelector('svg');
-        tSvg.innerHTML = "";
-        SVGDrawer.drawCircleFraction(tSvg, this.targetFrac.den, this.targetFrac.num, "#FFD54F", "#FAFAFA");
-        // 卡片歸位 (如果是 HTML 拖曳會自動歸位)
-      }, 3500);
+      // 6. 4.5 秒後自動恢復原狀
+      this.resetTimeout = setTimeout(() => {
+        this.resetOvenState();
+      }, 4500);
     }
   },
 

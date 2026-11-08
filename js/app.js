@@ -1214,6 +1214,17 @@ const App = {
       Game4.start();
     });
 
+    const menuBtnAI = document.getElementById('menu-btn-ai');
+    if (menuBtnAI) {
+      menuBtnAI.addEventListener('click', () => {
+        SoundManager.playClick();
+        App.setGameMode('ai');
+        App.showScreen('screen-ai-setup');
+        AIGame.setup();
+        TTSManager.speak('單人 AI 挑戰賽：魔法甜點櫥窗！請選擇難度與題型！');
+      });
+    }
+
     document.getElementById('menu-btn-pvp').addEventListener('click', () => {
       SoundManager.playClick();
       PvPGame.start();
@@ -1265,6 +1276,12 @@ const App = {
       badge.innerText = "單人模式";
       badge.style.backgroundColor = "var(--color-cream)";
       badge.style.borderColor = "#FBC02D";
+      singleItems.forEach(el => el.style.display = 'flex');
+      pvpItems.forEach(el => el.style.display = 'none');
+    } else if (mode === 'ai') {
+      badge.innerText = "AI挑戰模式";
+      badge.style.backgroundColor = "#EDE7F6";
+      badge.style.borderColor = "#7E57C2";
       singleItems.forEach(el => el.style.display = 'flex');
       pvpItems.forEach(el => el.style.display = 'none');
     } else {
@@ -4972,7 +4989,18 @@ const AIGame = {
   }
 };
 
-// --- 初始化執行 ---
-window.onload = () => {
+// --- 初始化執行 (防卡死雙保險：DOMContentLoaded / readyState / setTimeout 保底，本機離線秒開) ---
+function initAppSafely() {
+  if (window._appInitialized) return;
+  window._appInitialized = true;
   App.init();
-};
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAppSafely);
+  // 保底：若外部網路字型 (如 Google Fonts) 阻塞載入，150ms 後強制喚醒執行
+  setTimeout(initAppSafely, 150);
+} else {
+  initAppSafely();
+}
+window.addEventListener('load', initAppSafely);
